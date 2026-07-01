@@ -78,6 +78,12 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 - Setup (mostly manual — credentials/account steps the agent cannot do): create an internal integration at <https://www.notion.so/profile/integrations> (Read+Insert+Update content) → put its `ntn_` token in `.env` as `NOTION_API_TOKEN` → create/pick the knowledge-base **database** and **share it with the integration** (••• → Connections). The agent CAN create the DB + property columns via REST once the token is set and a parent page is shared.
 - Transport: direct REST via curl (the `ntn` CLI is unreliable behind an HTTPS proxy). See `graduation.md` → Notion adapter (worked example).
 
+**Obsidian provider:**
+- Detect: run `scripts/obsidian-preflight.sh --vault "<vault name>" [--target "<folder>"] [--index "<folder>/INDEX.md"]` (read-only) → JSON `status` ∈ `cli_missing` / `app_unreachable` / `vault_unknown` / `vault_unreachable` / `ok`, each with the exact next action in `next`.
+- Install: unlike Lark/Notion, there is **no command the agent can run to install this** — the `obsidian` CLI ships inside the Obsidian.app bundle itself (1.12+) and getting it onto PATH is a manual, platform-specific step. Point the user at <https://help.obsidian.md/cli> and stop; step 2's "offer to install it" does not apply here.
+- Setup: the target **vault** must already be registered with Obsidian (opened at least once via File → Open vault) and the desktop app must be running when preflight/graduation runs — the CLI talks to a live instance, not vault files directly.
+- Reliability note: switching the CLI's active vault is asynchronous and its exit codes are not trustworthy signals of success/failure in general — `obsidian-preflight.sh` retries past known-empty-response and known-nonzero-exit-but-actually-failed cases; don't reimplement a one-shot check against this CLI elsewhere.
+
 ## Files to create or update
 
 - `AGENTS.md` — from `assets/templates/AGENTS.md`, substituting the five placeholders.
