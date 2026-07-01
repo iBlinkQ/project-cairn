@@ -1,0 +1,22 @@
+# audit
+
+Manual or agent-requested checks on the project knowledge layer. Audit is the safety net for records missed during day-to-day work.
+
+## Checks
+
+- LOG entries that are too long or contain conclusions that belong in topic notes.
+- Topic notes without useful frontmatter.
+- Missing topic notes for repeated decisions or solved problems.
+- Contradictions between topic notes and old LOG entries (topic notes win; flag the stale LOG entry).
+- Engineering assets mixed into `cairn/` that should move back to the code tree.
+- Broken links or stale pointers in `Cited.md`.
+- Graduation candidates that have not been reviewed.
+- Project topic notes marked `graduation_status: candidate` but not yet graduated or confirmed.
+- Project topic notes marked `graduation_status: deferred` or `graduation_status: not_applicable` without enough body context to explain the judgment.
+- Knowledge-base notes missing `graduated_from` provenance.
+- Project topic notes that have graduated but lack the recommended back-pointer (`graduated_to` / `graduated_at`).
+- Closed or abandoned exploration branches whose valuable `cairn/` knowledge was never salvaged (should trigger a branch closure review, or a LOG / topic / graduation-candidate follow-up).
+
+## Behavior
+
+Suggest fixes. Do not silently rewrite large bodies of content without user confirmation.
