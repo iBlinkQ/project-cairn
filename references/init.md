@@ -63,6 +63,8 @@ When more than one provider is enabled, `AGENTS.md`'s three `Init configuration`
 
 Example (Obsidian + Notion): `Graduation provider(s): Obsidian (vault: ExampleVault), Notion (database: example-db-id-0000)`.
 
+This joined multi-value form applies specifically to the three `Init configuration` bullets. The same `{{KNOWLEDGE_INDEX}}` / `{{GRADUATION_TARGET}}` tokens also recur in two other template sentences — the "Knowledge base consumption reflex" bullet and the "Knowledge distillation rules" bullet. For multi-provider projects, don't repeat the full joined value there; point back to the section instead: replace `check {{KNOWLEDGE_INDEX}} first` with `check the configured provider indices first (see Init configuration above)`, and `distilled into {{GRADUATION_TARGET}} via the graduation mechanism` with `distilled into the configured provider target(s) via the graduation mechanism (see Init configuration above)`. Single-provider projects keep the direct substitution unchanged in all four locations.
+
 ### Provider target naming
 
 Any human-facing name for a graduation target — an Obsidian folder, a Notion database title, a Lark/Feishu wiki space — is the **user's** to choose, not Project Cairn's. Ask for it explicitly during provider collection (decision #4) and freeze the answer into `.cairn/config.yaml`; never default it to "Project Cairn" or any other tool-authored string, even when Project Cairn itself is the project being initialized. When a provider adapter script needs the name to create something new (e.g. `notion-init-db.sh --title`), pass the collected value — the script should refuse to invent one.
