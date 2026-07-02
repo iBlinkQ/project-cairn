@@ -18,7 +18,7 @@ Resolve each decision through the cascading defaults below instead of re-asking 
 Config resolves through three layers, highest wins (same model as git/npm/eslint):
 
 1. **Project-level** — `.cairn/config.yaml` in the project. Overrides everything.
-2. **User-level** — `~/.config/cairn/config.yaml`. Personal defaults: provider directory (the targets the user normally graduates to) plus their usual `git_policy` / `migration_mode` / `language`.
+2. **User-level** — `~/.config/cairn/config.yaml`, shaped like `assets/templates/user-config.yaml`. Personal defaults: a `providers` directory keyed by provider type (look up by name, e.g. `providers.notion` — it is a dict, not a list to scan) holding the targets the user normally graduates to, plus their usual `git_policy` / `migration_mode` / `language` under `defaults`.
 3. **Built-in** — the template defaults shipped in `assets/templates/config.yaml` (`knowledge_dir: cairn`, `migration_mode: start_fresh`, `language: en`).
 
 Credentials (tokens, vault secrets, Lark app secrets) never go in either config file. Keep them in `.env` or a secret store and reference them by name; they are never committed.
