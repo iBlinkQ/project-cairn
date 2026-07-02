@@ -22,7 +22,7 @@ A graduation candidate must be:
 
 ## Provider adapter constraints
 
-Write mechanics differ per provider; keep them in each provider's `.cairn/config.yaml` entry, not hardcoded in the flow. Two cross-provider principles learned from real runs:
+Every adapter script must satisfy `references/provider-interface.md` — the worked examples below show how each provider satisfies it, not a separate set of rules. Write mechanics differ per provider; keep them in each provider's `.cairn/config.yaml` entry, not hardcoded in the flow. Two cross-provider principles learned from real runs:
 
 - **`create_note` is not always a pure write.** Some providers must *resolve the target* (space/folder/node) before creating, and resolution needs read access. A wiki provider's "create node" implicitly reads the space, so a write-only grant is insufficient. Model the read dependency explicitly; don't assume write scope alone lets you create.
 - **A provider's CLI conveniences may be stricter than its API.** Prefer the provider's raw/native API for graduation writes when its high-level shortcuts add their own preconditions (e.g. literal scope prechecks) that reject otherwise-valid calls.
@@ -37,8 +37,10 @@ Verified path for graduating into a Feishu knowledge base with `lark-cli`, user 
 - **Scope:** request the coarse `wiki:wiki` (covers read + write). Granular read scopes (`wiki:space:retrieve` / `wiki:space:read` / `wiki:node:read`) may never enter the user token on CLI-style apps (they don't appear on the user consent page); the write-capable `wiki:wiki` does and reliably lands. Diagnostic: if `--as bot` works but `--as user` reports a missing scope, the block is in the user-authorization path, not the app's published permissions.
 - **API:** use native resource commands (`wiki spaces get`, `wiki nodes create`, `wiki nodes list`, `wiki spaces get_node`) + `docs +update`/`docs +fetch`. The `wiki +space-list` / `+node-create` shortcuts do strict literal scope prechecks that don't recognize `wiki:wiki` coverage and reject locally.
 - **Write loop:** resolve target space (`my_library` or a team `space_id`) → `wiki nodes create` (with `parent_node_token` to build the directory tree) → `docs +update` to write body + frontmatter → `docs +fetch` to verify → append a link into the INDEX/container node. Parent node = directory/index container; child nodes = individual graduated notes.
-- **Executable adapter:** `scripts/lark-wiki-graduate.sh` encodes this loop end-to-end (resolve → create → write → read-back verify → optional INDEX link), enforcing the constraints above. Content is piped via stdin to dodge the CLI's cwd-relative `@file` restriction. Run with `--dry-run` to preview the exact native API calls before writing.
-  - `scripts/lark-wiki-graduate.sh --title T --content body.md --space-id <id|my_library> [--parent-node-token TOK] [--index-doc OBJ_TOKEN]`
+- **Executable adapter:** `scripts/lark-wiki-graduate.sh` encodes this loop end-to-end (resolve → create → write → read-back verify → optional idempotent INDEX link), enforcing the constraints above. Content is piped via stdin to dodge the CLI's cwd-relative `@file` restriction. Run with `--dry-run` to preview the exact native API calls before writing.
+  - Frontmatter flags (`--type`/`--summary`/`--contains`/`--tags`/`--graduated-from`/`--authoring-mode`) are optional but recommended: when any is passed, the script assembles them into a YAML-formatted block prepended to the body (confirmed NOT to survive as parseable YAML after Feishu's markdown conversion — see `references/provider-interface.md` and `cairn/LOG.md` 2026-07-02). Passing none of them preserves the old exact behavior (content written as-is).
+  - `--index-doc` append is idempotent: it checks the index doc for an existing `[$TITLE](` entry before appending, so re-running graduate for the same title does not duplicate the INDEX line (a new wiki node is still created each call — Lark's API has no object-level create-if-not-exists).
+  - `scripts/lark-wiki-graduate.sh --title T --content body.md --space-id <id|my_library> [--parent-node-token TOK] [--index-doc OBJ_TOKEN] [--type knowledge_note] [--summary TEXT] [--contains a,b] [--tags a,b] [--graduated-from "<project>|<path>"] [--authoring-mode ai_generated]`
 
 ### Notion adapter (worked example)
 

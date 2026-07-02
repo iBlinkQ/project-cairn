@@ -28,6 +28,10 @@
 #     a new distinct object), writing straight to a vault path can silently
 #     clobber an existing file with the same title. Refuses to overwrite
 #     unless --force is passed.
+#   - INDEX append is idempotent: skips the append if `[[Title]]` already
+#     appears in the INDEX file, so a --force re-run (the only way to reach
+#     this code path twice for the same title -- overwrite protection blocks
+#     a plain re-run before it gets here) doesn't accumulate duplicate lines.
 #
 # macOS Bash 3.2 compatible: no mapfile/readarray, no associative arrays
 # (ordinary indexed arrays are fine in 3.2 and used here for repeatable
@@ -173,15 +177,20 @@ trap - EXIT
 # --- read-back verify (direct filesystem, no need to round-trip the flaky CLI) ---
 [ -f "$FULL_PATH" ] && grep -q "^type: $TYPE\$" "$FULL_PATH" || echo "warn: read-back did not find the expected frontmatter; verify manually" >&2
 
-# --- optional INDEX append (WikiLink — this provider's native format) ---
+# --- optional INDEX append (WikiLink — this provider's native format),
+#     idempotent: skip if an entry for this title already exists ---
 if [ -n "$INDEX" ]; then
   INDEX_FULL="$VAULT_PATH/$INDEX"
   mkdir -p "$(dirname "$INDEX_FULL")" || die "could not create INDEX folder"
   [ -f "$INDEX_FULL" ] || : > "$INDEX_FULL"
-  LINK_LINE="- [[$SAFE_TITLE]]"
-  [ -n "$SUMMARY" ] && LINK_LINE="$LINK_LINE — $SUMMARY"
-  [ -s "$INDEX_FULL" ] && [ "$(tail -c1 "$INDEX_FULL")" != "" ] && printf '\n' >> "$INDEX_FULL"
-  printf '%s\n' "$LINK_LINE" >> "$INDEX_FULL"
+  if grep -qF "[[$SAFE_TITLE]]" "$INDEX_FULL" 2>/dev/null; then
+    echo "note: '$SAFE_TITLE' already has an INDEX entry; not appending a duplicate" >&2
+  else
+    LINK_LINE="- [[$SAFE_TITLE]]"
+    [ -n "$SUMMARY" ] && LINK_LINE="$LINK_LINE — $SUMMARY"
+    [ -s "$INDEX_FULL" ] && [ "$(tail -c1 "$INDEX_FULL")" != "" ] && printf '\n' >> "$INDEX_FULL"
+    printf '%s\n' "$LINK_LINE" >> "$INDEX_FULL"
+  fi
 fi
 
 # --- emit result ---
