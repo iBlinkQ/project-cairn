@@ -20,6 +20,12 @@ A graduation candidate must be:
 3. If a project topic has been explicitly judged, optionally record `graduation_status` on the project topic note: `candidate`, `deferred`, or `not_applicable`. Do not add this field to every topic by default.
 4. On confirmation, prepare the knowledge-base note with required frontmatter (`graduated_from` mandatory; see `frontmatter.md`), and optionally record `graduated_to` / `graduated_at` back on the project topic note.
 
+## Re-graduation (updating an already-graduated topic)
+
+A project topic note is not frozen once it has graduated — it stays the project's local current truth and can keep being updated in place as the project progresses. "One-directional" means the knowledge-base note is never silently overwritten by a project-side edit, not that the project-side source can no longer change.
+
+When a topic that already has `graduated_to` gains a substantive new development (a real update, not a typo fix), propose re-graduating: run the same graduation flow again, targeting the same knowledge-base note (same provider adapter, same identifier), and update `graduated_at` to the new date. This is a normal repeat of the one-directional `graduate` action, not a new synchronization mechanism — the user still confirms before anything is written, same as a first-time graduation. Until a re-graduation happens, the knowledge-base note remains the cross-project current truth but may be behind the project's latest local state; `cairn audit` flags this (see `audit.md`).
+
 ## Provider adapter constraints
 
 Every adapter script must satisfy `references/provider-interface.md` — the worked examples below show how each provider satisfies it, not a separate set of rules. Write mechanics differ per provider; keep them in each provider's `.cairn/config.yaml` entry, not hardcoded in the flow. Two cross-provider principles learned from real runs:

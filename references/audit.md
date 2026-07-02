@@ -15,6 +15,7 @@ Manual or agent-requested checks on the project knowledge layer. Audit is the sa
 - Project topic notes marked `graduation_status: deferred` or `graduation_status: not_applicable` without enough body context to explain the judgment.
 - Knowledge-base notes missing `graduated_from` provenance.
 - Project topic notes that have graduated but lack the recommended back-pointer (`graduated_to` / `graduated_at`).
+- Project topic notes whose `updated` frontmatter date is newer than their `graduated_at` — the corresponding knowledge-base note may now be stale; suggest re-graduation (see `graduation.md` → Re-graduation), don't auto-trigger it.
 - Closed or abandoned exploration branches whose valuable `cairn/` knowledge was never salvaged (should trigger a branch closure review, or a LOG / topic / graduation-candidate follow-up).
 
 ## Behavior
