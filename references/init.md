@@ -54,6 +54,15 @@ When more than one provider is enabled, write `graduation.providers` as a list i
 
 Collect these per-provider details at init time; do not assume one provider's fields apply to another.
 
+### Multi-provider `AGENTS.md` rendering
+
+When more than one provider is enabled, `AGENTS.md`'s three `Init configuration` placeholder lines each list every enabled provider, not just one:
+
+- `{{GRADUATION_PROVIDER}}` → `<Provider1> (<primary identifying value>), <Provider2> (<primary identifying value>)`
+- `{{KNOWLEDGE_INDEX}}` and `{{GRADUATION_TARGET}}` → `<Provider1> → <value>; <Provider2> → <value>`, semicolon-separated, one clause per provider
+
+Example (Obsidian + Notion): `Graduation provider(s): Obsidian (vault: ExampleVault), Notion (database: example-db-id-0000)`.
+
 ### Provider target naming
 
 Any human-facing name for a graduation target — an Obsidian folder, a Notion database title, a Lark/Feishu wiki space — is the **user's** to choose, not Project Cairn's. Ask for it explicitly during provider collection (decision #4) and freeze the answer into `.cairn/config.yaml`; never default it to "Project Cairn" or any other tool-authored string, even when Project Cairn itself is the project being initialized. When a provider adapter script needs the name to create something new (e.g. `notion-init-db.sh --title`), pass the collected value — the script should refuse to invent one.
