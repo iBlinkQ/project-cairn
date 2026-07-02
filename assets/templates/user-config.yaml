@@ -15,6 +15,7 @@ providers:
     link_format: wikilink
   lark-wiki:
     space_id: "<wiki space id>"
+    index: "<wiki INDEX node url>"
     index_node_token: "<index node token>"
     scope: "wiki:wiki"
     api: native
