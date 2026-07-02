@@ -10,8 +10,10 @@
 #
 # Real-world behavior verified interactively (not documented anywhere):
 #   - The `obsidian` CLI ships INSIDE the Obsidian.app bundle (1.12+), not as
-#     a separate package. There is no one-line install command; getting it
-#     onto PATH is a manual, platform/user-specific step. See $DOCS.
+#     a separate package. It is enabled with a toggle in the app itself:
+#     Settings → General → "Command line interface" ("允许从命令行与 Obsidian
+#     交互"). There is no command the agent can run for this — it's a GUI
+#     click only the user can do. See $DOCS.
 #   - Switching the CLI's target vault (`vault="<name>"`) is asynchronous.
 #     The FIRST query against a vault that wasn't already active can return
 #     an empty/zero result with exit code 0 — not an error — while Obsidian
@@ -75,7 +77,7 @@ command -v jq >/dev/null 2>&1 || { echo "error: jq not found (needed to parse ob
 # 1) Installed? No one-line install command exists — see header note.
 if ! command -v "$CLI" >/dev/null 2>&1; then
   emit "✗ obsidian CLI not found on PATH." cli_missing \
-    "The Obsidian CLI ships inside Obsidian 1.12+ itself, not as a separate package; getting it onto PATH is a manual, platform-specific step the agent cannot do for you. See $DOCS."
+    "In Obsidian: Settings → General → \"Command line interface\", turn it on. This ships inside the app itself; it's a one-click GUI setting the agent cannot toggle for you. See $DOCS."
   exit 1
 fi
 INSTALLED=true
@@ -92,8 +94,8 @@ while [ "$attempt" -lt "$RETRIES" ]; do
   sleep "$attempt"
 done
 if [ -z "$VAULTS_RAW" ]; then
-  emit "✗ obsidian CLI installed but got no response (Obsidian may not be running)." app_unreachable \
-    "Open the Obsidian desktop app — the CLI talks to a running instance — then retry."
+  emit "✗ obsidian CLI installed but got no response (Obsidian may not be running, or its CLI toggle may be off)." app_unreachable \
+    "Open the Obsidian desktop app and confirm Settings → General → \"Command line interface\" is on — the CLI talks to a running instance over that interface — then retry."
   exit 1
 fi
 APP_OK=true
