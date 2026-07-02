@@ -99,7 +99,7 @@ done
 
 # --- yaml helpers (reimplemented locally; see provider-interface.md on why
 #     adapter scripts don't share code) ---
-yaml_scalar() { printf '"%s"' "$(printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"; }
+yaml_scalar() { jq -Rn --arg s "$1" '$s'; }   # YAML double-quoted scalars are JSON-compatible, so jq's JSON string escaping produces a valid one -- handles embedded newlines/tabs/control chars that the previous hand-rolled sed (backslash+quote only) missed
 yaml_flow_list() { # comma-separated -> [a, b, c] (empty -> [])
   s="$1"; out=""
   IFS=','; for item in $s; do
