@@ -57,6 +57,21 @@ Verified path for graduating into a Notion knowledge base:
   - `scripts/notion-graduate.sh --db ID --title T --content body.md [--type …] [--contains a,b] [--tags a,b] [--graduated-from TEXT] [--graduated-at YYYY-MM-DD] [--authoring-mode …]` — one note (single POST, no PATCH); wikilinks→bold text.
   - `scripts/notion-graduate-batch.py --db ID --graduated-at DATE --src-dir DIR [--repo-prefix P]` — interlinked set, two-pass so `[[wikilinks]]` become real page mentions; frontmatter→properties; idempotent (skips notes already in the DB). Python (urllib+retry) because the title→id graph is awkward in bash.
 
+### Obsidian adapter (worked example)
+
+**Step 0 — preflight (run before any write).** `scripts/obsidian-preflight.sh --vault "<vault name>" [--target "<folder>"] [--index "<folder>/INDEX.md"]` is read-only and returns a JSON verdict: `cli_missing`, `app_unreachable`, `vault_unknown`, `vault_unreachable`, or `ok`. Don't write until `ok`.
+
+Verified path for graduating into an Obsidian vault:
+
+- **The `obsidian` CLI is used only to resolve the vault path (read dependency) and, optionally, to read a note back for verification — not to write the note.** `obsidian create` takes content as a shell argument, the same length/quoting fragility Lark's adapter routes around with stdin; here the note is written directly to the vault's filesystem instead.
+- **Frontmatter is native YAML embedded in the note**, not external properties (Notion) and not left for the caller to hand-embed (Lark). The adapter owns frontmatter construction from flags, the same way `notion-graduate.sh` owns DB properties.
+- **`graduated_from` is a structured list of `{project, path}` entries**, not a scalar — see `frontmatter.md` → "`graduated_from` shape". Verified against notes already in production; several cite more than one source.
+- **`[[wikilinks]]` pass through unchanged.** Obsidian is the one provider with native WikiLink support (`config.yaml`'s `link_format: wikilink`) — no rewrite step, unlike Notion's two-pass mention conversion.
+- **Overwrite protection.** Unlike Lark/Notion, where every API call creates a new distinct object, a direct filesystem write can silently clobber an existing note with the same title. The adapter refuses to overwrite unless `--force` is passed.
+- **Two real CLI reliability gaps found while building this** (see `obsidian-preflight.sh` for the fixes): switching the CLI's active vault is asynchronous (first query after a switch can return an empty result with `rc=0`, not an error); several commands (e.g. reading a missing file) also return `rc=0` on failure, with the error only visible in the printed text. Don't trust a one-shot check or a bare exit code against this CLI.
+- **Executable adapter** (`--dry-run` previews the frontmatter and target path without touching the filesystem):
+  - `scripts/obsidian-graduate.sh --vault "<name>" --title T --target "<folder>" [--content body.md] [--index "<folder>/INDEX.md"] [--summary …] [--contains a,b] [--tags a,b] --graduated-from "<project>|<path>" [--graduated-from … repeatable] [--authoring-mode …] [--force]` — writes the note, optionally appends a `[[WikiLink]]` line to the INDEX file (creating it if it doesn't exist yet).
+
 ## Knowledge-base links
 
 When the target provider supports wiki-style links, add links only when they are useful in context. Do not add a generic "Related" list just to connect notes.

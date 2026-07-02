@@ -83,6 +83,7 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 - Install: unlike Lark/Notion, there is **no command the agent can run to install this** — the `obsidian` CLI ships inside the Obsidian.app bundle itself (1.12+) and is enabled with a GUI toggle: Settings → General → "Command line interface". Relay that exact step and stop; step 2's "offer to install it" does not apply here. Docs: <https://help.obsidian.md/cli>.
 - Setup: the target **vault** must already be registered with Obsidian (opened at least once via File → Open vault) and the desktop app must be running when preflight/graduation runs — the CLI talks to a live instance, not vault files directly.
 - Reliability note: switching the CLI's active vault is asynchronous and its exit codes are not trustworthy signals of success/failure in general — `obsidian-preflight.sh` retries past known-empty-response and known-nonzero-exit-but-actually-failed cases; don't reimplement a one-shot check against this CLI elsewhere.
+- Writing: `scripts/obsidian-graduate.sh` writes the note directly to the vault's filesystem (not through the CLI) and owns YAML frontmatter construction, including the structured `graduated_from` list. See `graduation.md` → Obsidian adapter (worked example).
 
 ## Files to create or update
 

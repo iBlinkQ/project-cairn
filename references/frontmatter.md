@@ -28,6 +28,20 @@ Defines project-side and knowledge-base-side frontmatter.
 
 `graduated_from` is required on the knowledge-base side. Project-side `graduated_to` is recommended but not mandatory. Applicability, version/time context, last-verification time, and source backlinks should appear in the note body if not promoted to frontmatter in v0.1.
 
+### `graduated_from` shape
+
+`graduated_from` is a **list of `{project, path}` entries**, not a scalar — verified against notes already graduated into the Obsidian knowledge base, several with more than one entry (a note distilled from more than one source topic/file):
+
+```yaml
+graduated_from:
+  - project: "Project Cairn"
+    path: "/absolute/or/vault-relative/source/path.md"
+  - project: "Project Cairn"
+    path: "/another/source/file.md"
+```
+
+Every provider that writes structured frontmatter (as opposed to leaving frontmatter for the caller to hand-embed, e.g. Lark) should use this shape, not a single string. `scripts/obsidian-graduate.sh` builds it from repeatable `--graduated-from "<project>|<path>"` flags.
+
 ## Enum values
 
 - `type` (OKF-aligned concept-object kind):
