@@ -210,6 +210,10 @@ fi
 
 # 5) Optionally append a link into the INDEX/container node (update_index),
 #    idempotent: skip if an entry for this title already exists.
+#    Known TOCTOU: fetch-then-append is not atomic; two concurrent calls for
+#    the same title could both pass the check before either appends. Accepted
+#    for this codebase's serial single-invocation usage pattern (an agent
+#    calling this script one graduation at a time), not fixed here.
 if [ -n "$INDEX_DOC" ]; then
   if [ "$DRY_RUN" -eq 1 ]; then
     echo "DRY-RUN: $CLI docs +fetch --doc $INDEX_DOC --doc-format markdown --as $IDENTITY  (check for existing [$TITLE]( entry first)" >&2

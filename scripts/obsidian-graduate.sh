@@ -178,7 +178,11 @@ trap - EXIT
 [ -f "$FULL_PATH" ] && grep -q "^type: $TYPE\$" "$FULL_PATH" || echo "warn: read-back did not find the expected frontmatter; verify manually" >&2
 
 # --- optional INDEX append (WikiLink — this provider's native format),
-#     idempotent: skip if an entry for this title already exists ---
+#     idempotent: skip if an entry for this title already exists.
+#     Known TOCTOU: grep-then-append is not atomic; two concurrent --force
+#     re-runs for the same title could both pass the check before either
+#     appends. Accepted for this codebase's serial single-invocation usage
+#     pattern, not fixed here. ---
 if [ -n "$INDEX" ]; then
   INDEX_FULL="$VAULT_PATH/$INDEX"
   mkdir -p "$(dirname "$INDEX_FULL")" || die "could not create INDEX folder"
