@@ -32,3 +32,7 @@ providers:
     identity: integration_token
     credential_env: NOTION_API_TOKEN
     link_format: url
+  plain-directory:
+    target: "<local knowledge-base directory>"
+    index: "<that directory>/INDEX.md"
+    link_format: markdown

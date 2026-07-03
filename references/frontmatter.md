@@ -42,6 +42,8 @@ graduated_from:
 
 Every provider that writes structured frontmatter (as opposed to leaving frontmatter for the caller to hand-embed, e.g. Lark) should use this shape, not a single string. `scripts/obsidian-graduate.sh` builds it from repeatable `--graduated-from "<project>|<path>"` flags.
 
+For `path`, prefer the **source-project-relative** path (e.g. `cairn/<topic>.md`): the `project` field already says which project, and a relative path survives machine moves and repo relocations. Absolute paths appear in older production notes and remain acceptable; new graduations should write project-relative.
+
 ## Enum values
 
 - `type` (OKF-aligned concept-object kind):

@@ -71,7 +71,7 @@ Any human-facing name for a graduation target — an Obsidian folder, a Notion d
 
 ### Tool-backed provider preflight
 
-A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync binary…) has out-of-band setup the project cannot assume: the tool installed, authorized, and granted the right permissions. The moment the user picks such a provider, **detect the dependencies automatically — do not ask the user "is it installed?"**. Run the provider's preflight and act on the verdict:
+A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync binary…) has out-of-band setup the project cannot assume: the tool installed, authorized, and granted the right permissions. (A provider with no external tool — a plain directory — needs no preflight: just confirm the target directory exists and is writable, creating it and an empty `INDEX.md` if the user confirms.) The moment the user picks such a provider, **detect the dependencies automatically — do not ask the user "is it installed?"**. Run the provider's preflight and act on the verdict:
 
 1. **Dependencies present → continue** to the next init step.
 2. **Missing → give the official install/docs link, AND offer to install it for the user**: "Want me to install it now?"

@@ -19,6 +19,7 @@ A graduation candidate must be:
 2. The user confirms before anything is written or prepared.
 3. If a project topic has been explicitly judged, optionally record `graduation_status` on the project topic note: `candidate`, `deferred`, or `not_applicable`. Do not add this field to every topic by default.
 4. On confirmation, prepare the knowledge-base note with required frontmatter (`graduated_from` mandatory; see `frontmatter.md`), and optionally record `graduated_to` / `graduated_at` back on the project topic note.
+5. Record the graduation itself as one `cairn/LOG.md` entry — summary plus a pointer to the knowledge-base note — the same way an audit run logs itself (see `audit.md` → Behavior).
 
 ## Note body structure
 
@@ -89,6 +90,16 @@ Verified path for graduating into an Obsidian vault:
 - **Two real CLI reliability gaps found while building this** (see `obsidian-preflight.sh` for the fixes): switching the CLI's active vault is asynchronous (first query after a switch can return an empty result with `rc=0`, not an error); several commands (e.g. reading a missing file) also return `rc=0` on failure, with the error only visible in the printed text. Don't trust a one-shot check or a bare exit code against this CLI.
 - **Executable adapter** (`--dry-run` previews the frontmatter and target path without touching the filesystem):
   - `scripts/obsidian-graduate.sh --vault "<name>" --title T --target "<folder>" [--content body.md] [--index "<folder>/INDEX.md"] [--summary …] [--contains a,b] [--tags a,b] --graduated-from "<project>|<path>" [--graduated-from … repeatable] [--authoring-mode …] [--force]` — writes the note, optionally appends a `[[WikiLink]]` line to the INDEX file (creating it if it doesn't exist yet).
+
+### Plain directory (worked example, scriptless)
+
+The zero-setup provider: the knowledge base is just a local directory of Markdown files plus an `INDEX.md`. There is no adapter script and no preflight tool — the only pre-write check is that the target directory exists and is writable (create it, and an empty `INDEX.md`, at init time if the user confirms). The agent performs the graduation steps by hand, guided by the same contract the scripted adapters satisfy:
+
+- **Config shape:** `provider: plain-directory`, `target: "<directory>"`, `index: "<directory>/INDEX.md"`, `link_format: markdown`.
+- **Note file:** `<target>/<Title>.md` — the note title as the filename, native YAML frontmatter embedded in the note (same construction as the Obsidian example, including the `graduated_from` list shape). Same overwrite protection: if a note with that filename already exists, stop and ask instead of silently clobbering.
+- **INDEX append:** add `- [<Title>](<Title>.md) — <summary>` to the INDEX, idempotently — skip if a `[<Title>](` entry already exists (`provider-interface.md`'s bounded-delimiter rule).
+- **Read-back verify:** re-read the written file and confirm the frontmatter round-trips before reporting success.
+- **`[[wikilinks]]`** have no native meaning here; rewrite them as relative markdown links to sibling notes that exist in the directory, otherwise leave them as plain text.
 
 ## Knowledge-base links
 
