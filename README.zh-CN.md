@@ -4,9 +4,11 @@
 
 **把做过的事情，沉淀成可复用的知识。**
 
+Cairn 是旅人用石头垒起的路标堆——名字本身就是这个 skill 想做的事：把学到的东西留在下一个项目找得到的地方。
+
 Project Cairn 是一个 AI Agent Skill，适配 Claude Code、Codex 及其他兼容 Agent。它做的是**经验知识化**：把 AI 协作项目里"做过的事情"沉淀成可复用的知识。决策、走过的弯路、解决掉的坑、跑通的方案，都不会随会话结束而消失，而是传递给下一个项目。
 
-> Karpathy 的 [LLM Wiki](https://github.com/karpathy) 做的是**资料知识化**：把你*读过*的原始资料整理成 wiki。Project Cairn 做的是**经验知识化**：把你*做过*的踩坑、研究和实战整理成 wiki。原始资料解析是可选输入，经验蒸馏才是主航道。
+> [Karpathy](https://github.com/karpathy) 的 LLM Wiki 模式做的是**资料知识化**：把你*读过*的原始资料整理成 wiki。Project Cairn 做的是**经验知识化**：把你*做过*的踩坑、研究和实战整理成 wiki。原始资料解析是可选输入，经验蒸馏才是主航道。
 
 ## 要解决的问题
 
@@ -27,7 +29,7 @@ Project Cairn 的解法是一小组文档，每个文档只承担一种生命周
 | **项目层** | 本项目的规则、状态、结论、案例 | 根 `AGENTS.md` + `cairn/` | 进入项目时自动读取 |
 | **知识库层** | 跨项目、可复用的领域知识 | provider 拥有的外部存储（Obsidian、飞书/Lark wiki、Notion……） | 按需拉取 |
 
-知识只**单向**流动：项目 → 知识库，触发时机是"知识被验证为可复用的那一刻"，而不是某个固定的项目阶段。一篇知识毕业后，就成为该主题新的"当前真相"；项目里的源文档保持不动，作为历史档案留存。把知识拉回一个新项目是另一个独立、显式的动作——只在 `cairn/Cited.md` 里挂一个指针，绝不复制正文。
+知识只**单向**流动：项目 → 知识库，触发时机是"知识被验证为可复用的那一刻"，而不是某个固定的项目阶段。一篇知识毕业后，就成为该主题跨项目的新"当前真相"；但项目侧的源文档仍是本项目自己的当前真相，可以随进展继续原地更新——"单向"约束的是知识库笔记不会被项目侧编辑悄悄覆盖，不是源文档从此冻结。已毕业主题有实质新进展时，再走一次毕业、刷新同一篇知识库笔记即可。把知识拉回一个新项目是另一个独立、显式的动作——只在 `cairn/Cited.md` 里挂一个指针，绝不复制正文。
 
 ```
 项目 A 的经验 ──毕业(graduate)──▶ 知识库（唯一当前真相）──拉取(pull)──▶ 项目 B 的 cairn/Cited.md
@@ -35,7 +37,7 @@ Project Cairn 的解法是一小组文档，每个文档只承担一种生命周
 
 ### 亮点
 
-- **触发式创建，不堆模板。** 新项目只需要一个 `AGENTS.md`。其余的一切——主题笔记、`ROADMAP.md`、`Reference/`、`Cited.md`——只在具体信号出现的那一刻才创建：一个决策值得记、一个坑解决了、出现了一个跨会话的目标。
+- **触发式创建，不堆模板。** 新项目只需要一个 `AGENTS.md`。其余的一切——主题笔记、`ROADMAP.md`、`cairn/Reference/`（项目自己持有的外部原始材料，不要跟本 skill 自己的 `references/` 文档目录搞混）、`Cited.md`——只在具体信号出现的那一刻才创建：一个决策值得记、一个坑解决了、出现了一个跨会话的目标。
 - **一个文件只干一件事。** 规则在 `AGENTS.md`，时序在 `cairn/LOG.md`，结论在 `cairn/<主题>.md`——不再有 `MEMORY.md` 那种既想当日志又想当知识库的超载文件。
 - **工程资产不进系统。** 被代码依赖的规格和 schema 留在代码树里，永远不进 `cairn/`——能进去的只有"关于它的知识"（为什么这么设计、构建过程踩了什么坑）。
 - **分支不会带走知识。** 探索分支在合并、放弃或回退之前，会先做一次轻量审查，把值得留的东西收拢下来，而不是让它跟着分支一起消失。
@@ -52,23 +54,21 @@ Project Cairn 把知识毕业到三个已验证的平台，每个都贴着该平
 
 ## 安装
 
-Project Cairn 以 Agent Skill 的形式分发。目前还没有包管理器——把 `skill/project-cairn/` 放到你的 Agent 会读取 skill 的位置即可。
+Project Cairn 以 Agent Skill 的形式分发。目前还没有包管理器——把这个仓库 clone 到你的 Agent 会读取 skill 的位置即可。前置依赖：`git`；`scripts/*.sh` 需要 `bash`（macOS/Linux 原生支持，Windows 需要 WSL 或 Git Bash）；`scripts/*.py` 只需要 Python 3，不依赖 shell。
 
 **Claude Code**（用户级，作为独立的 git 仓库 skill）：
 
 ```bash
-git clone https://github.com/iBlinkQ/project-cairn.git
-cp -R project-cairn/skill/project-cairn ~/.claude/skills/project-cairn
+git clone https://github.com/iBlinkQ/project-cairn.git ~/.claude/skills/project-cairn
 ```
 
 **Codex**（用户级 direct skill 路径）：
 
 ```bash
-git clone https://github.com/iBlinkQ/project-cairn.git
-cp -R project-cairn/skill/project-cairn ~/.agents/skills/project-cairn
+git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-cairn
 ```
 
-`agents/openai.yaml` 携带 Codex 专用的元数据；`SKILL.md` 是每个 Agent 首先读取的入口文件。
+无论哪种方式，装好之后 `SKILL.md` 都直接在安装目录的根部（`~/.claude/skills/project-cairn/SKILL.md`，不是再往下嵌一层）——这是每个 Agent 首先读取的入口文件。`agents/openai.yaml` 携带 Codex 专用的元数据。
 
 ## 快速开始
 
@@ -84,10 +84,12 @@ cp -R project-cairn/skill/project-cairn ~/.agents/skills/project-cairn
 | `references/init.md` | 在项目中初始化或补建 Project Cairn |
 | `references/maintenance.md` | 记录进展、更新 `LOG.md` / `ROADMAP.md` / 主题笔记 |
 | `references/graduation.md` | 把验证过的知识蒸馏并写入知识库 |
+| `references/provider-interface.md` | 每个 provider adapter 脚本必须满足的行为契约 |
 | `references/consume.md` | 把外部知识拉取、引用进项目 |
 | `references/audit.md` | 找出知识漂移、矛盾或缺失的记录 |
 | `references/frontmatter.md` | 项目主题笔记与知识库笔记的 frontmatter 字段规范 |
 | `references/branch-closure.md` | 在关闭探索分支前收拢其中的知识 |
+| `references/zh-glossary.md` | 用中文写项目文档时的固定中英术语对照 |
 
 ## 和其他工具的关系
 
