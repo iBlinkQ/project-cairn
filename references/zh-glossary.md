@@ -19,6 +19,10 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 | open question | 开放问题 |
 | branch closure review | 分支关闭复盘 |
 | Current Conclusions (heading) | 当前结论 |
+| Background (heading) | 背景 |
+| Conclusion (heading) | 结论 |
+| Evidence (heading) | 论据 |
+| Practice Guide (heading) | 实践指南 |
 | Decision Log (heading) | 决策记录 |
 | Experience (heading) | 经验 |
 | Lessons (heading) | 教训 |

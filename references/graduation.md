@@ -20,6 +20,16 @@ A graduation candidate must be:
 3. If a project topic has been explicitly judged, optionally record `graduation_status` on the project topic note: `candidate`, `deferred`, or `not_applicable`. Do not add this field to every topic by default.
 4. On confirmation, prepare the knowledge-base note with required frontmatter (`graduated_from` mandatory; see `frontmatter.md`), and optionally record `graduated_to` / `graduated_at` back on the project topic note.
 
+## Note body structure
+
+The knowledge-base note body must open with **Background**, then **Conclusion**, in that order. Sections after those two are not fixed — shape them to what the knowledge itself needs:
+
+1. **Background** (required, first) — the situation the knowledge arose from: what problem it was solving, how it was discovered or encountered, why it was needed. Readers need the origin to judge whether the note applies to their case.
+2. **Conclusion** (required, second) — the core claim or solution itself.
+3. **Further sections** (as needed, follow the knowledge) — evidence (reasoning, verified cases, comparisons, counter-examples) when the claim needs backing; a practice guide (procedures, safe patterns, decision tests) when the knowledge is operational; applicability, boundaries, or when-not-to-apply where useful.
+
+Do not open the body with the conclusion. Quick scanning is served by the frontmatter `summary` (a one-line conclusion), so the body does not need to lead with it. Chinese names for common headings are fixed in `zh-glossary.md`.
+
 ## Re-graduation (updating an already-graduated topic)
 
 A project topic note is not frozen once it has graduated — it stays the project's local current truth and can keep being updated in place as the project progresses. "One-directional" means the knowledge-base note is never silently overwritten by a project-side edit, not that the project-side source can no longer change.
