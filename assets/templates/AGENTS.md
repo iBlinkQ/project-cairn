@@ -43,7 +43,7 @@
 
 ## Knowledge base consumption reflex
 
-- Before integrating with an external platform / debugging an error / entering a new domain, check {{KNOWLEDGE_INDEX}} first; record citations in `cairn/Cited.md` as pointers only, never copy the body text.
+- Before work whose reusable kernel — any conclusion it produces or depends on — would be graduation-worthy, check {{KNOWLEDGE_INDEX}} first; add a `cairn/Cited.md` entry only for notes that actually shaped the output (pointers only, never copy the body text).
 
 ## Document collaboration rules
 
