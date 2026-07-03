@@ -6,7 +6,7 @@ Initialize or retrofit Project Cairn in a project. This is an interactive setup 
 
 1. Project name and one-line summary.
 2. Whether `cairn/` is committed, ignored, or privately synced (`git_policy`: `track` | `ignore` | `private_sync`). If `cairn/Reference/` (see decision list in `assets/templates/config.yaml`) is expected to hold externally-owned or sensitive raw material — a client's PDF, a call transcript — offer a separate, optionally more conservative `reference_git_policy` for it alone; omitting it means Reference/ simply inherits `git_policy`.
-3. Graduation provider(s): collect one or more targets (e.g. Obsidian, Lark/Feishu CLI, a plain directory, later Notion).
+3. Graduation provider(s): collect one or more targets (e.g. Obsidian, Lark/Feishu CLI, Notion).
 4. For each provider, collect target and index location. Do not hardcode concrete Obsidian vault paths or directory names; those are user/project choices.
 5. Historical knowledge strategy (`migration_mode`). Default: `start_fresh`.
 6. Documentation language used when writing generated files (`AGENTS.md`, `cairn/LOG.md`, `cairn/ROADMAP.md`, topic notes). Default: `en`.
@@ -71,7 +71,7 @@ Any human-facing name for a graduation target — an Obsidian folder, a Notion d
 
 ### Tool-backed provider preflight
 
-A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync binary…) has out-of-band setup the project cannot assume: the tool installed, authorized, and granted the right permissions. (A provider with no external tool — a plain directory — needs no preflight: just confirm the target directory exists and is writable, creating it and an empty `INDEX.md` if the user confirms.) The moment the user picks such a provider, **detect the dependencies automatically — do not ask the user "is it installed?"**. Run the provider's preflight and act on the verdict:
+A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync binary…) has out-of-band setup the project cannot assume: the tool installed, authorized, and granted the right permissions. The moment the user picks such a provider, **detect the dependencies automatically — do not ask the user "is it installed?"**. Run the provider's preflight and act on the verdict:
 
 1. **Dependencies present → continue** to the next init step.
 2. **Missing → give the official install/docs link, AND offer to install it for the user**: "Want me to install it now?"

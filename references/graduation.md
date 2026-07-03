@@ -91,16 +91,6 @@ Verified path for graduating into an Obsidian vault:
 - **Executable adapter** (`--dry-run` previews the frontmatter and target path without touching the filesystem):
   - `scripts/obsidian-graduate.sh --vault "<name>" --title T --target "<folder>" [--content body.md] [--index "<folder>/INDEX.md"] [--summary …] [--contains a,b] [--tags a,b] --graduated-from "<project>|<path>" [--graduated-from … repeatable] [--authoring-mode …] [--force]` — writes the note, optionally appends a `[[WikiLink]]` line to the INDEX file (creating it if it doesn't exist yet).
 
-### Plain directory (worked example, scriptless)
-
-The zero-setup provider: the knowledge base is just a local directory of Markdown files plus an `INDEX.md`. There is no adapter script and no preflight tool — the only pre-write check is that the target directory exists and is writable (create it, and an empty `INDEX.md`, at init time if the user confirms). The agent performs the graduation steps by hand, guided by the same contract the scripted adapters satisfy:
-
-- **Config shape:** `provider: plain-directory`, `target: "<directory>"`, `index: "<directory>/INDEX.md"`, `link_format: markdown`.
-- **Note file:** `<target>/<Title>.md` — the note title as the filename, native YAML frontmatter embedded in the note (same construction as the Obsidian example, including the `graduated_from` list shape). Same overwrite protection: if a note with that filename already exists, stop and ask instead of silently clobbering.
-- **INDEX append:** add `- [<Title>](<Title>.md) — <summary>` to the INDEX, idempotently — skip if a `[<Title>](` entry already exists (`provider-interface.md`'s bounded-delimiter rule).
-- **Read-back verify:** re-read the written file and confirm the frontmatter round-trips before reporting success.
-- **`[[wikilinks]]`** have no native meaning here; rewrite them as relative markdown links to sibling notes that exist in the directory, otherwise leave them as plain text.
-
 ## Knowledge-base links
 
 When the target provider supports wiki-style links, add links only when they are useful in context. Do not add a generic "Related" list just to connect notes.
