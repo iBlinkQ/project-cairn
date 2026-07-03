@@ -21,3 +21,5 @@ Manual or agent-requested checks on the project knowledge layer. Audit is the sa
 ## Behavior
 
 Suggest fixes. Do not silently rewrite large bodies of content without user confirmation.
+
+The audit run itself earns one `cairn/LOG.md` entry — a short summary of what was checked and what was found, plus a pointer to the findings, added at the top like any entry. Appending this record is not "rewriting content"; the no-rewrite rule protects existing material, not the log of the audit happening.
