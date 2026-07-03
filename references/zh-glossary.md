@@ -6,6 +6,11 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 |---|---|
 | graduate / graduation | 毕业 |
 | graduation candidate | 毕业候选 |
+| graduation-symmetry test | 毕业对称测试 |
+| graduation-worthy | 够格毕业 |
+| reusable kernel | 可复用内核 |
+| adoption bar | 采用门槛 |
+| negative adoption | 排除法式采用 |
 | topic note | 知识专题文档 |
 | knowledge base | 知识库 |
 | current truth | 当前真相 |
