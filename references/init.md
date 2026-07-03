@@ -5,7 +5,7 @@ Initialize or retrofit Project Cairn in a project. This is an interactive setup 
 ## Decisions to collect
 
 1. Project name and one-line summary.
-2. Whether `cairn/` is committed, ignored, or privately synced (`git_policy`: `track` | `ignore` | `private_sync`).
+2. Whether `cairn/` is committed, ignored, or privately synced (`git_policy`: `track` | `ignore` | `private_sync`). If `cairn/Reference/` (see decision list in `assets/templates/config.yaml`) is expected to hold externally-owned or sensitive raw material — a client's PDF, a call transcript — offer a separate, optionally more conservative `reference_git_policy` for it alone; omitting it means Reference/ simply inherits `git_policy`.
 3. Graduation provider(s): collect one or more targets (e.g. Obsidian, Lark/Feishu CLI, a plain directory, later Notion).
 4. For each provider, collect target and index location. Do not hardcode concrete Obsidian vault paths or directory names; those are user/project choices.
 5. Historical knowledge strategy (`migration_mode`). Default: `start_fresh`.

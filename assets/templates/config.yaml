@@ -6,6 +6,14 @@ cairn:
   knowledge_dir: "cairn"
   # git_policy: track | ignore | private_sync
   git_policy: "{{GIT_POLICY}}"
+  # reference_git_policy (optional): same enum as git_policy, scoped only to
+  # cairn/Reference/ (external raw input the project owns but didn't author —
+  # a client's PDF, a call transcript). Omit to inherit git_policy above.
+  # Set it separately when Reference/ may hold material more sensitive than
+  # the project's own authored knowledge, e.g. git_policy: track (cairn/
+  # committed/public) but reference_git_policy: ignore or private_sync
+  # (raw external material stays out of the repo either way).
+  # reference_git_policy: "{{REFERENCE_GIT_POLICY}}"
   # language: en | zh | ... — language used when writing AGENTS.md/LOG.md/ROADMAP.md/topic notes for this project
   language: "{{DOC_LANGUAGE}}"
 graduation:
