@@ -4,6 +4,7 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 
 | English | Chinese |
 |---|---|
+| cairn (the name / imagery) | 路标石堆（不用"玛尼堆"） |
 | graduate / graduation | 毕业 |
 | graduation candidate | 毕业候选 |
 | graduation-symmetry test | 毕业对称测试 |
