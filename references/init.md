@@ -100,7 +100,7 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 
 - `AGENTS.md` — from `assets/templates/AGENTS.md`, substituting the five placeholders.
 - `CLAUDE.md` — from `assets/templates/CLAUDE.md` (one line `@AGENTS.md`).
-- `.cairn/config.yaml` — from `assets/templates/config.yaml`, with the collected values frozen in.
+- `.cairn/config.yaml` — from `assets/templates/config.yaml`, with the collected values frozen in. `{{SKILL_SPEC_DATE}}` is stamped automatically from `references/upgrade.md`'s "Current spec date" — it is not a user decision and is never asked; it anchors later instance-drift checks (see `upgrade.md`).
 - `cairn/LOG.md` — from `assets/templates/LOG.md`.
 - `cairn/ROADMAP.md` — optional; only when the project has goals that outlast one session.
 

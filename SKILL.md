@@ -17,6 +17,7 @@ Load exactly the reference you need:
 - `references/consume.md` — pull, cite, reuse, or apply external knowledge from the configured knowledge base.
 - `references/maintenance.md` — record progress, update LOG, update ROADMAP, maintain topic notes, or apply Cairn rules after work.
 - `references/audit.md` — inspect, audit, validate, clean up, or find missing project knowledge records.
+- `references/upgrade.md` — upgrade an initialized project instance to the current skill spec, or check how far it has drifted (instance drift after the skill itself evolved).
 - `references/graduation.md` — graduate knowledge, move reusable experience to a knowledge base, or judge graduation-readiness.
 - `references/frontmatter.md` — create or review Cairn topic notes or knowledge-base notes.
 - `references/branch-closure.md` — review, close, abandon, or roll back an exploration branch and salvage its `cairn/` knowledge before it disappears.

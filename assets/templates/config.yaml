@@ -4,6 +4,13 @@ project:
   summary: "{{PROJECT_SUMMARY}}"
 cairn:
   knowledge_dir: "cairn"
+  # Date of the skill spec this instance was initialized against, or last
+  # upgraded to. Stamped automatically by init from references/upgrade.md's
+  # "Current spec date" (not a user decision); re-stamped after each instance
+  # upgrade. Audit/upgrade drift checks compare it against the upgrade.md
+  # changelog. Missing field = instance predates this mechanism: run the full
+  # changelog (see references/upgrade.md).
+  skill_spec_date: "{{SKILL_SPEC_DATE}}"
   # git_policy: track | ignore | private_sync
   git_policy: "{{GIT_POLICY}}"
   # reference_git_policy (optional): same enum as git_policy, scoped only to

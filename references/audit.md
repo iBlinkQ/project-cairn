@@ -17,6 +17,7 @@ Manual or agent-requested checks on the project knowledge layer. Audit is the sa
 - Project topic notes that have graduated but lack the recommended back-pointer (`graduated_to` / `graduated_at`).
 - Project topic notes whose `updated` frontmatter date is newer than their `graduated_at` — the corresponding knowledge-base note may now be stale; suggest re-graduation (see `graduation.md` → Re-graduation), don't auto-trigger it.
 - Closed or abandoned exploration branches whose valuable `cairn/` knowledge was never salvaged (should trigger a branch closure review, or a LOG / topic / graduation-candidate follow-up).
+- Instance drift against the current skill spec: read `skill_spec_date` from `.cairn/config.yaml` and run the Detect step of every `references/upgrade.md` changelog entry newer than it (missing field = run the full changelog). Report drifted items with each entry's fix guidance and safety level; fixing them is the upgrade flow in `upgrade.md`, not audit's job.
 
 ## Behavior
 
