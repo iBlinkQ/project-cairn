@@ -1,6 +1,6 @@
 # provider-interface
 
-The behavioral contract every graduation-provider adapter script (preflight + graduate) must satisfy. Read this before adding a 4th provider or changing an existing one — the worked examples in `graduation.md` show how each of the three current providers satisfies this contract, not a separate set of rules.
+The behavioral contract every graduation-provider adapter script (preflight + graduate) must satisfy, plus the read-side query capability contract used at consumption time. Read this before adding a 4th provider or changing an existing one — the worked examples in `graduation.md` show how each of the three current providers satisfies this contract, not a separate set of rules.
 
 ## Preflight scripts
 
@@ -26,6 +26,34 @@ The behavioral contract every graduation-provider adapter script (preflight + gr
 - Not every provider needs this step. When a provider's container structure already serves as the index (Notion: the database's own views/properties), there is no separate index step, and the contract does not require inventing one.
 - When a provider does support an index-append step, **it must be idempotent**: before appending, check whether an entry for this note already exists in the index, and skip the append if so. Match on a bounded, unambiguous delimiter (e.g. the markdown link-open form `[$TITLE](` or a WikiLink `[[$TITLE]]`) — a bare substring check produces false positives (an entry titled "Lark CLI 踩坑合集" would substring-match a new graduation titled "Lark CLI") that skip the append and leave the newly-created object orphaned, unreachable from the index, which is worse than the duplicate line this clause exists to prevent.
 - Idempotent index-append does not imply idempotent object creation. A provider whose API has no create-if-not-exists (Lark, Notion) will still create a new underlying object on every call; only the index *line* is deduplicated.
+
+## Read side: `query` (documented capability, not an adapter script)
+
+The consumption flow (`consume.md` → Retrieval) needs a read path into the knowledge base. Unlike the write side, the read side ships **no adapter scripts**: queries are ad-hoc, composed per task by the consuming agent, and freezing them into a script would fix the funnel shape without removing any real complexity. What this contract standardizes is the capability classes, the preference order, and the fallback rules.
+
+### Capability classes
+
+A provider's read-side description must state which of these four query classes it supports, and with what:
+
+1. **Structured** — filter by frontmatter/properties (`type`, `contains`, `tags`, `graduated_from`, ...).
+2. **Tag** — enumerate the tag inventory or list notes carrying a tag.
+3. **Fulltext** — content search, ideally scoped to the knowledge-base container.
+4. **Graph** — follow links/backlinks from a hit to adjacent notes.
+
+Providers are not required to support all four; the funnel in `consume.md` uses what exists and skips what doesn't.
+
+### Rules
+
+- **Provider-native query interfaces are preferred over raw filesystem `grep`.** A native interface queries the provider's semantic index — frontmatter and inline tags unified under one tag query, aliases resolved into backlinks, saved views evaluated — none of which a literal text grep over note files reproduces. Raw grep/direct reads are a *fallback*, not the default.
+- **The fallback must stay explicit and available.** When the native interface is unavailable or hits a known unreliability (CLI missing, app not running, false-success exit codes), degrade to direct filesystem/API reads rather than aborting the consumption flow.
+- **A query miss is not proof of absence.** Whatever the tier, the funnel ends by scanning the relevant (sub-)INDEX as the recall safety net — see `consume.md` → Retrieval.
+- **Write-side counterpart: tag discipline.** Tag-query recall depends on tags chosen at graduation time. Before inventing a new tag, check the provider's tag inventory and prefer reuse over near-synonyms (see the corresponding step in `graduation.md` → Flow).
+
+### Per-provider mapping
+
+- **Obsidian** — the full four classes via the `obsidian` CLI (primitives confirmed present on CLI 1.12; not yet exercised at scale): structured `properties` / `property:read` / `base:query` (Bases saved views, `format=json`); tag `tag name=<tag> verbose` / `tags counts`; fulltext `search` / `search:context` (`path=` scoped to the knowledge folder, `format=json`); graph `backlinks` / `links`. Curation extras for audit-style sweeps: `orphans` / `deadends` / `unresolved`. Reliability caveats are the same ones the write side already documents (`rc=0` false successes, async vault switching, requires the app running) → fallback is direct filesystem reads under the resolved vault path.
+- **Notion** — the database *is* the index, so structured query is native: `POST /v1/databases/{id}/query` with property filters (same transport rules as the write side: direct REST + retry, pinned `Notion-Version`). Tag is just a Multi-select property filter, not a separate mechanism. Fulltext `POST /v1/search` is workspace-wide and coarse — filter results back to the KB database. Graph is weak (page mentions only).
+- **Lark wiki** — verified read path is tree traversal (`wiki nodes list`) plus INDEX-doc fetch (`docs +fetch`); suite-wide search APIs exist but are **unverified** for this flow — do not rely on them until tested in a real environment.
 
 ## Cross-cutting
 

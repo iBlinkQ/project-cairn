@@ -19,11 +19,28 @@ Examples of applying the test (not an exhaustive list):
 - Configuring this repo's CI caching — the deliverable (a project-local config file) isn't reusable, but the work depends on reusable knowledge another project may have graduated → check.
 - Pure project-internal detail judgments (naming a variable) — no reusable kernel anywhere in the work → don't check.
 
-Checking is cheap (the INDEX is a title/summary list); when the test says yes, err toward checking. The precision lives at the citation step below, not here.
+Checking is cheap (at any scale, the first read is titles + summaries, not note bodies — see Retrieval); when the test says yes, err toward checking. The precision lives at the citation step below, not here.
+
+## Retrieval
+
+How to *find* candidate notes scales with the knowledge base's size. The entry point is `graduation.index` in `.cairn/config.yaml`.
+
+- **Tens of notes (flat INDEX)** — read the INDEX top-to-bottom; a full scan of a one-line-per-note list is still the cheapest reliable option.
+- **Hundreds (tiered INDEX)** — read the top-level domain index, descend into the relevant domain sub-index, scan that.
+- **Beyond that (query-first)** — don't scan; query. Run the funnel below, with the INDEX kept as the recall safety net.
+
+Query funnel — use the provider's native query interfaces (`provider-interface.md` → Read side; prefer them over raw grep, fall back explicitly when they're unavailable):
+
+1. **Structured/tag query** on the task's domain terms (frontmatter properties, tags).
+2. **Fulltext search** scoped to the knowledge-base container, when structured/tag misses.
+3. **Graph expansion** from any hit — follow links/backlinks to adjacent notes before concluding coverage.
+4. **Fallback scan** — a query miss is not proof of absence; finish by scanning the relevant (sub-)INDEX the flat way.
+
+At every tier the unit read is the same: index lines or query results give titles + summaries; open only the note bodies that look relevant.
 
 ## How
 
-1. Read the configured knowledge index from `.cairn/config.yaml` (`graduation.index`).
+1. Locate candidate notes per **Retrieval** above.
 2. Read only the relevant external notes.
 3. Apply the **adoption bar** before writing any `cairn/Cited.md` entry: a note earns an entry only when its conclusion was adopted or adapted into the current work's concrete output — a decision made, a code approach taken, a fix applied. Checked the INDEX, opened a note, found it inapplicable or only loosely related → no entry; skip without trace. Checking is not a commitment to cite.
    - Adoption includes **negative adoption**: a note that shaped the judgment by ruling a path out ("we didn't go down road Y because of this note") has influenced the concrete output and earns an entry. The bar is "influenced the concrete output," not "was copied verbatim."

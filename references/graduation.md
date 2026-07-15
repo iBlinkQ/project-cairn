@@ -18,7 +18,7 @@ A graduation candidate must be:
 1. Propose candidates (the Skill may detect them; audit is the backstop).
 2. The user confirms before anything is written or prepared.
 3. If a project topic has been explicitly judged, optionally record `graduation_status` on the project topic note: `candidate`, `deferred`, or `not_applicable`. Do not add this field to every topic by default.
-4. On confirmation, prepare the knowledge-base note with required frontmatter (`graduated_from` mandatory; see `frontmatter.md`), and optionally record `graduated_to` / `graduated_at` back on the project topic note.
+4. On confirmation, prepare the knowledge-base note with required frontmatter (`graduated_from` mandatory; see `frontmatter.md`), and optionally record `graduated_to` / `graduated_at` back on the project topic note. When choosing `tags`, check the provider's existing tag inventory first (Obsidian: `obsidian tags counts`) and prefer reusing an existing tag over coining a near-synonym — consumption-time tag-query recall depends on this discipline (see `provider-interface.md` → Read side).
 5. Record the graduation itself as one `cairn/LOG.md` entry — summary plus a pointer to the knowledge-base note — the same way an audit run logs itself (see `audit.md` → Behavior).
 
 ## Note body structure
