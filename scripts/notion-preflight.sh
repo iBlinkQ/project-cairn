@@ -7,7 +7,9 @@
 #   2. NOTION_API_TOKEN is set (an internal-integration token; keep it in .env)
 #   3. the token can actually READ the target database (i.e. the DB — or its
 #      parent page — is shared with the integration)
-#   4. the database has the property columns Cairn maps frontmatter onto
+#   4. the database has the property columns Cairn maps frontmatter onto, with
+#      the exact compatible Notion types (wrong types are reported separately
+#      as db_prop_type_mismatch with property/expected/actual details)
 #
 # It performs NO writes. Prints a structured JSON verdict on stdout and a
 # human-readable summary + next action on stderr. Exit 0 iff status==ok.
@@ -24,7 +26,7 @@ set -uo pipefail
 
 NV="${NOTION_API_VERSION:-2022-06-28}"
 DB=""
-REQUIRED_PROPS="type contains tags graduated_from graduated_at authoring_mode"
+REQUIRED_PROP_SPECS="Name:title type:select contains:multi_select tags:multi_select graduated_from:rich_text graduated_at:date authoring_mode:select contributors:multi_select graduated_by:multi_select"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -35,16 +37,17 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-INSTALLED=false; TOKEN_SET=false; DB_READ=false; MISSING_PROPS=""
+INSTALLED=false; TOKEN_SET=false; DB_READ=false; MISSING_PROPS=""; TYPE_MISMATCHES='[]'
 
 emit() { # summary status next
   printf '%s\n' "$1" >&2
   jq -nc \
     --argjson deps "$INSTALLED" --argjson token "$TOKEN_SET" \
     --argjson db_read "$DB_READ" --arg missing "$MISSING_PROPS" \
-    --arg status "$2" --arg next "$3" \
+    --argjson mismatches "$TYPE_MISMATCHES" --arg status "$2" --arg next "$3" \
     '{deps_ok:$deps, token_set:$token, db_readable:$db_read,
-      missing_props:($missing | if .=="" then [] else split(" ") end), status:$status, next:$next}'
+      missing_props:($missing | if .=="" then [] else split(" ") end),
+      property_type_mismatches:$mismatches, status:$status, next:$next}'
 }
 
 # curl+retry: GET /v1/<path>. Echoes body on transport success (may be an API
@@ -98,8 +101,10 @@ fi
 DB_READ=true
 
 # 4) required property columns present?
+# Missing names stay a separate status from incompatible existing columns.
 HAVE="$(printf '%s' "$BODY" | jq -r '.properties | keys[]' 2>/dev/null || true)"
-for p in $REQUIRED_PROPS; do
+for spec in $REQUIRED_PROP_SPECS; do
+  p="${spec%%:*}"
   case "
 $HAVE
 " in
@@ -111,7 +116,23 @@ $p
 done
 if [ -n "$MISSING_PROPS" ]; then
   emit "✗ Database missing property columns: $MISSING_PROPS" db_props_missing \
-    "Add these columns to the DB (type/authoring_mode=Select, contains/tags=Multi-select, graduated_from=Text, graduated_at=Date), or let the agent create the DB with the full schema."
+    "Add these columns to the DB (type/authoring_mode=Select, contains/tags/contributors/graduated_by=Multi-select, graduated_from=Text, graduated_at=Date), or let the agent create the DB with the full schema after confirmation."
+  exit 1
+fi
+
+for spec in $REQUIRED_PROP_SPECS; do
+  p="${spec%%:*}"; expected="${spec#*:}"
+  actual="$(printf '%s' "$BODY" | jq -r --arg p "$p" '.properties[$p].type // ""')"
+  if [ "$actual" != "$expected" ]; then
+    TYPE_MISMATCHES="$(printf '%s' "$TYPE_MISMATCHES" | jq -c \
+      --arg property "$p" --arg expected "$expected" --arg actual "$actual" \
+      '. + [{property:$property, expected:$expected, actual:$actual}]')"
+  fi
+done
+if [ "$(printf '%s' "$TYPE_MISMATCHES" | jq 'length')" -gt 0 ]; then
+  details="$(printf '%s' "$TYPE_MISMATCHES" | jq -r 'map(.property + " expected=" + .expected + " actual=" + .actual) | join("; ")')"
+  emit "✗ Database property type mismatch: $details" db_prop_type_mismatch \
+    "Change each listed property to the expected Notion type before graduation; do not write into an incompatible schema."
   exit 1
 fi
 

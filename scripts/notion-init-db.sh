@@ -52,6 +52,8 @@ jq -nc --arg parent "$PARENT" --arg title "$TITLE" '{
     "graduated_from": {rich_text:{}},
     "graduated_at": {date:{}},
     "authoring_mode": {select:{options:[{name:"ai_generated"},{name:"human_written"},{name:"ai_assisted"}]}},
+    "contributors": {multi_select:{}},
+    "graduated_by": {multi_select:{}},
     "source": {url:{}}
   }
 }' > "$PAYLOAD_FILE"

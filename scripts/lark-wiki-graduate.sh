@@ -25,6 +25,12 @@
 #     what was actually observed). Passing no frontmatter flags at all
 #     preserves the old exact behavior (content written as-is) for backward
 #     compatibility.
+#   - Create mode makes a new wiki node and appends its initial document body.
+#     Update mode (`--update-node-token` + `--update-obj-token` + `--update-url`)
+#     targets that exact existing object and uses the installed lark-cli's
+#     supported `docs +update --command overwrite` contract to replace the
+#     document body. The caller resolves merged current truth (including the
+#     `graduated_by` union) before invoking this low-level adapter.
 #   - `--index-doc` append is idempotent: the index doc is fetched and checked
 #     for an existing `[$TITLE](` entry before appending, so re-running
 #     graduate for the same title does not duplicate the INDEX line (it does
@@ -43,9 +49,11 @@
 # Usage:
 #   lark-wiki-graduate.sh --title TITLE [--content FILE]
 #       [--space-id ID|my_library] [--parent-node-token TOKEN]
+#       [--update-node-token TOKEN --update-obj-token TOKEN --update-url URL]
 #       [--index-doc OBJ_TOKEN] [--identity user|bot]
 #       [--type knowledge_note] [--summary TEXT] [--contains a,b,c] [--tags a,b,c]
 #       [--graduated-from "<project>|<source path>" ...] [--authoring-mode ai_generated]
+#       [--contributor NAME ...] [--graduated-by NAME ...]
 #       [--dry-run]
 #
 # Output (stdout): JSON { space_id, node_token, obj_token, url }
@@ -60,10 +68,15 @@ TITLE=""
 CONTENT_FILE=""
 PARENT=""
 INDEX_DOC=""
+UPDATE_NODE_TOKEN=""
+UPDATE_OBJ_TOKEN=""
+UPDATE_URL=""
 DRY_RUN=0
 TYPE=""; SUMMARY=""; CONTAINS=""; TAGS=""; AMODE=""
 FRONTMATTER_FLAGS_GIVEN=0
 GFROM_ENTRIES=()
+CONTRIBUTOR_ENTRIES=()
+GRADUATED_BY_ENTRIES=()
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -74,20 +87,33 @@ while [ $# -gt 0 ]; do
     --space-id) SPACE_ID="${2:-}"; shift 2;;
     --parent-node-token) PARENT="${2:-}"; shift 2;;
     --index-doc) INDEX_DOC="${2:-}"; shift 2;;
+    --update-node-token) UPDATE_NODE_TOKEN="${2:-}"; shift 2;;
+    --update-obj-token) UPDATE_OBJ_TOKEN="${2:-}"; shift 2;;
+    --update-url) UPDATE_URL="${2:-}"; shift 2;;
     --identity) IDENTITY="${2:-}"; shift 2;;
     --type) TYPE="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --summary) SUMMARY="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --contains) CONTAINS="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --tags) TAGS="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --graduated-from) GFROM_ENTRIES+=("${2:-}"); FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
+    --contributor)
+      [ -n "${2:-}" ] || die "--contributor requires a non-empty display name"
+      CONTRIBUTOR_ENTRIES+=("$2"); FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
+    --graduated-by)
+      [ -n "${2:-}" ] || die "--graduated-by requires a non-empty display name"
+      GRADUATED_BY_ENTRIES+=("$2"); FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --authoring-mode) AMODE="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --dry-run) DRY_RUN=1; shift;;
-    -h|--help) sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
+    -h|--help) sed -n '2,53p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
     *) die "unknown arg: $1";;
   esac
 done
 
 [ -n "$TITLE" ] || die "--title is required"
+[ -z "$UPDATE_NODE_TOKEN$UPDATE_OBJ_TOKEN$UPDATE_URL" ] || {
+  [ -n "$UPDATE_NODE_TOKEN" ] && [ -n "$UPDATE_OBJ_TOKEN" ] && [ -n "$UPDATE_URL" ] ||
+    die "update mode requires --update-node-token, --update-obj-token, and --update-url together"
+}
 [ -z "$CONTENT_FILE" ] || [ -f "$CONTENT_FILE" ] || die "content file not found: $CONTENT_FILE"
 command -v "$CLI" >/dev/null 2>&1 || die "$CLI not found"
 command -v jq  >/dev/null 2>&1 || die "jq not found"
@@ -110,12 +136,30 @@ yaml_flow_list() { # comma-separated -> [a, b, c] (empty -> [])
   unset IFS
   printf '[%s]' "$out"
 }
+yaml_block_list() { # field, repeatable values; empty -> no output
+  field="$1"; shift; body=""
+  seen_entries=()
+  for item in "$@"; do
+    [ -z "$item" ] && continue
+    duplicate=0
+    for seen in "${seen_entries[@]:-}"; do
+      [ -z "$seen" ] && continue
+      [ "$seen" = "$item" ] && duplicate=1 && break
+    done
+    [ "$duplicate" -eq 1 ] && continue
+    seen_entries+=("$item")
+    body="$body
+  - $(yaml_scalar "$item")"
+  done
+  [ -n "$body" ] && printf '%s:%s\n' "$field" "$body"
+  return 0
+}
 
 # --- detection guard: warn (never fail) if the caller still hand-embeds
 #     frontmatter into --content instead of using the flags above ---
 if [ "$FRONTMATTER_FLAGS_GIVEN" -eq 0 ] && [ -n "$CONTENT_FILE" ]; then
   FIRST_LINE="$(head -n1 "$CONTENT_FILE" 2>/dev/null || true)"
-  [ "$FIRST_LINE" = "---" ] && echo "warn: content appears to pre-embed frontmatter; prefer --type/--summary/--contains/--tags/--graduated-from/--authoring-mode instead" >&2
+  [ "$FIRST_LINE" = "---" ] && echo "warn: content appears to pre-embed frontmatter; prefer --type/--summary/--contains/--tags/--graduated-from/--contributor/--graduated-by/--authoring-mode instead" >&2
 fi
 
 # --- assemble frontmatter (only if at least one flag was given); local-only
@@ -124,6 +168,8 @@ WRITE_CONTENT="$CONTENT_FILE"
 if [ "$FRONTMATTER_FLAGS_GIVEN" -eq 1 ]; then
   CONTAINS_YAML="$(yaml_flow_list "$CONTAINS")"
   TAGS_YAML="$(yaml_flow_list "$TAGS")"
+  CONTRIBUTORS_YAML="$(yaml_block_list contributors "${CONTRIBUTOR_ENTRIES[@]:-}")"
+  GRADUATED_BY_YAML="$(yaml_block_list graduated_by "${GRADUATED_BY_ENTRIES[@]:-}")"
   GFROM_YAML=""
   for e in "${GFROM_ENTRIES[@]:-}"; do
     [ -z "$e" ] && continue
@@ -132,12 +178,17 @@ if [ "$FRONTMATTER_FLAGS_GIVEN" -eq 1 ]; then
   - project: $(yaml_scalar "$proj")
     path: $(yaml_scalar "$path")"
   done
+  PROVENANCE_YAML=""
+  [ -n "$CONTRIBUTORS_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
+$CONTRIBUTORS_YAML"
+  [ -n "$GRADUATED_BY_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
+$GRADUATED_BY_YAML"
   FRONTMATTER="---
 type: ${TYPE:-knowledge_note}
 summary: $(yaml_scalar "$SUMMARY")
 contains: $CONTAINS_YAML
 tags: $TAGS_YAML
-graduated_from:$GFROM_YAML
+graduated_from:$GFROM_YAML$PROVENANCE_YAML
 authoring_mode: ${AMODE:-ai_generated}
 ---"
   TMP_CONTENT="$(mktemp -t lark-grad.XXXXXX)"
@@ -150,7 +201,7 @@ fi
 lark() { "$CLI" "$@" --as "$IDENTITY" --json; }
 
 # 0) Preflight: warn (don't fail) if the user token lacks wiki:wiki.
-if [ "$DRY_RUN" -eq 0 ] && [ "$IDENTITY" = "user" ]; then
+if [ "$DRY_RUN" -eq 0 ] && [ "$IDENTITY" = "user" ] && [ -z "$UPDATE_NODE_TOKEN" ]; then
   scopes="$("$CLI" auth status --json 2>/dev/null | jq -r '.identities.user.scope // ""' 2>/dev/null || true)"
   case " $scopes " in
     *" wiki:wiki "*) : ;;
@@ -159,7 +210,9 @@ if [ "$DRY_RUN" -eq 0 ] && [ "$IDENTITY" = "user" ]; then
 fi
 
 # 1) Resolve target space (read dependency before create).
-if [ "$SPACE_ID" = "my_library" ]; then
+if [ -n "$UPDATE_NODE_TOKEN" ]; then
+  RESOLVED_SPACE="$SPACE_ID"
+elif [ "$SPACE_ID" = "my_library" ]; then
   if [ "$DRY_RUN" -eq 1 ]; then
     echo "DRY-RUN: $CLI wiki spaces get --params '{\"space_id\":\"my_library\"}' --as $IDENTITY --json" >&2
     RESOLVED_SPACE="<resolved-my_library-id>"
@@ -171,30 +224,39 @@ else
   RESOLVED_SPACE="$SPACE_ID"
 fi
 
-# 2) Create node via native API (optional parent_node_token builds the tree).
-data="$(jq -nc --arg t "$TITLE" --arg p "$PARENT" \
-  '{node_type:"origin",obj_type:"docx",title:$t} + (if $p=="" then {} else {parent_node_token:$p} end)')"
-if [ "$DRY_RUN" -eq 1 ]; then
-  echo "DRY-RUN: $CLI wiki nodes create --params '{\"space_id\":\"$RESOLVED_SPACE\"}' --data '$data' --as $IDENTITY --json" >&2
-  NODE_TOKEN="<node_token>"; OBJ_TOKEN="<obj_token>"; NODE_URL="<url>"
+# 2) Create a node, or bind update mode to the caller-supplied existing object.
+if [ -n "$UPDATE_NODE_TOKEN" ]; then
+  NODE_TOKEN="$UPDATE_NODE_TOKEN"
+  OBJ_TOKEN="$UPDATE_OBJ_TOKEN"
+  NODE_URL="$UPDATE_URL"
 else
-  created="$(lark wiki nodes create --params "{\"space_id\":\"$RESOLVED_SPACE\"}" --data "$data")"
-  NODE_TOKEN="$(printf '%s' "$created" | jq -r '.data.node.node_token')"
-  OBJ_TOKEN="$(printf '%s' "$created" | jq -r '.data.node.obj_token')"
-  NODE_URL="$(printf '%s' "$created" | jq -r '.data.node.url')"
-  [ -n "$NODE_TOKEN" ] && [ "$NODE_TOKEN" != "null" ] || die "node create failed: $created"
+  data="$(jq -nc --arg t "$TITLE" --arg p "$PARENT" \
+    '{node_type:"origin",obj_type:"docx",title:$t} + (if $p=="" then {} else {parent_node_token:$p} end)')"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "DRY-RUN: $CLI wiki nodes create --params '{\"space_id\":\"$RESOLVED_SPACE\"}' --data '$data' --as $IDENTITY --json" >&2
+    NODE_TOKEN="<node_token>"; OBJ_TOKEN="<obj_token>"; NODE_URL="<url>"
+  else
+    created="$(lark wiki nodes create --params "{\"space_id\":\"$RESOLVED_SPACE\"}" --data "$data")"
+    NODE_TOKEN="$(printf '%s' "$created" | jq -r '.data.node.node_token')"
+    OBJ_TOKEN="$(printf '%s' "$created" | jq -r '.data.node.obj_token')"
+    NODE_URL="$(printf '%s' "$created" | jq -r '.data.node.url')"
+    [ -n "$NODE_TOKEN" ] && [ "$NODE_TOKEN" != "null" ] || die "node create failed: $created"
+  fi
 fi
 
-# 3) Write body + frontmatter (stdin avoids the @file cwd restriction).
+# 3) Write body + frontmatter (stdin avoids the @file cwd restriction). Create
+# mode appends into the fresh empty document; update mode replaces current truth.
 if [ -n "$WRITE_CONTENT" ]; then
+  WRITE_COMMAND="append"
+  [ -n "$UPDATE_NODE_TOKEN" ] && WRITE_COMMAND="overwrite"
   if [ "$DRY_RUN" -eq 1 ]; then
-    echo "DRY-RUN: cat '$WRITE_CONTENT' | $CLI docs +update --doc $OBJ_TOKEN --command append --doc-format markdown --content - --as $IDENTITY --json" >&2
+    echo "DRY-RUN: cat '$WRITE_CONTENT' | $CLI docs +update --doc $OBJ_TOKEN --command $WRITE_COMMAND --doc-format markdown --content - --as $IDENTITY --json" >&2
     if [ "$FRONTMATTER_FLAGS_GIVEN" -eq 1 ]; then
       echo "DRY-RUN: frontmatter:" >&2
       printf '%s\n' "$FRONTMATTER" | sed 's/^/  /' >&2
     fi
   else
-    "$CLI" docs +update --doc "$OBJ_TOKEN" --command append --doc-format markdown \
+    "$CLI" docs +update --doc "$OBJ_TOKEN" --command "$WRITE_COMMAND" --doc-format markdown \
       --content - --as "$IDENTITY" --json < "$WRITE_CONTENT" >/dev/null
   fi
 fi

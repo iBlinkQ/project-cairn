@@ -13,6 +13,5 @@ authoring_mode: ai_generated
 
 <!--
 Optional section menu (add as needed, keep only sections with real content, don't pre-build empty shells):
-## Current Conclusions / ## Decision Log / ## Experience / ## Lessons / ## Open Questions
+## Formation Context (optionally with nested ### Origin quote) / ## Current Conclusions / ## Decision Log / ## Experience / ## Lessons / ## Open Questions
 -->
-

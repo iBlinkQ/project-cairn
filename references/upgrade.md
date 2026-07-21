@@ -2,7 +2,7 @@
 
 Bring an already-initialized project instance up to the current skill spec, or measure how far it has drifted. `cairn init` freezes the spec of its day into the project (AGENTS.md wording, config shape, LOG conventions); the skill keeps evolving, and nothing updates the frozen copy automatically. This reference is both the detection checklist and the execution manual for closing that gap.
 
-**Current spec date: 2026-07-15**
+**Current spec date: 2026-07-16**
 
 ## Two layers of "upgrade" — keep them apart
 
@@ -75,3 +75,10 @@ Entry format — four fixed fields:
 - **Detect**: the field is missing.
 - **Fix**: run the full changelog above (missing field = predates everything), then stamp the field with the current spec date. This entry is the cold-start path for every instance initialized before the field existed.
 - **Safety**: `auto` (the stamp itself; individual fixes above keep their own levels).
+
+### 2026-07-16 — human provenance and optional origin quotes
+
+- **Affects**: `project topic notes`, `knowledge-base notes`, stored graduation identifiers, and Notion provider database schemas.
+- **Detect**: a topic created or substantively updated on/after 2026-07-16 has safely identifiable human contributors but no `contributors`; a graduation on/after 2026-07-16 lacks non-empty `graduated_by` on either side; or Notion preflight reports missing/wrongly typed `contributors` / `graduated_by` Multi-select properties. Legacy untouched notes without the fields are not drifted. Also flag an origin-quote section that is empty, unattributed, or knowingly retained on only one side after graduation because of an unresolved disclosure risk. For a previously re-graduated topic, search its provider container for duplicate same-title objects or repeated body content; if duplicates exist or the project did not retain the original provider identifier needed by update mode, the prior create-only flow drifted.
+- **Fix**: add and de-duplicate the two identity lists when the identities can be confirmed; add or correct the two Notion Multi-select properties before the next graduation; backfill legacy notes only when touched or re-graduated. Remove, explicitly redact, or replace risky direct wording with a labeled scene summary on both project and knowledge-base copies after human confirmation. Preserve one canonical provider object and its identifier for future explicit update mode; propose archiving/removing accidental duplicates only after human review. Existing canonical notes are updated in place: Obsidian same path + `--force`, Lark stored node/document identifiers, Notion stored page ID.
+- **Safety**: `auto` for adding confirmed identities inside the project and de-duplicating list values; `confirm` for changing provider schemas, external knowledge-base notes, attribution, quotation, or redaction.

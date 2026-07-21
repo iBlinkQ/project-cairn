@@ -60,6 +60,12 @@ graduation:
   #     identity: integration_token
   #     credential_env: NOTION_API_TOKEN  # value in .env, referenced by name only
   #     link_format: url
+  #
+  # (c) Deferred — no knowledge base connected yet ("try Cairn first, connect
+  #     later"). Replace the three keys in (a) with this single marker; the
+  #     provider decisions are collected at the first graduation instead
+  #     (see references/graduation.md → Deferred provider):
+  # provider: none
 history:
   # migration_mode: start_fresh | inventory_only | selective_migrate
   migration_mode: "{{MIGRATION_MODE}}"

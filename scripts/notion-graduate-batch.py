@@ -3,9 +3,10 @@
 
 Two-pass so `[[wikilinks]]` between the graduated notes become REAL Notion page
 mentions (a single-note adapter can't resolve forward/circular refs):
-  Pass 1: create every page (properties only), collect title -> page id.
-  Pass 2: append each body, resolving [[Title]] -> page mention when Title is
-          one of the batch (else bold text fallback).
+  Pass 1: create new pages or update properties on an existing title, then
+          collect title -> page id.
+  Pass 2: replace each page body, resolving [[Title]] -> page mention when
+          Title is one of the batch (else bold text fallback).
 
 Why python (not the bash adapter): the two-pass needs a title->id graph and
 mention injection into rich_text — awkward in bash/jq. Uses urllib (honors
@@ -99,6 +100,15 @@ def md_to_blocks(body, idmap):
             continue
         if ln.startswith("# "):
             i += 1; continue
+        if ln.startswith(">"):
+            buf = []
+            while i < len(lines) and lines[i].startswith(">"):
+                buf.append(re.sub(r"^> ?", "", lines[i]))
+                i += 1
+            quote_text = "\n".join(buf)
+            if quote_text.strip():
+                blocks.append({"type": "quote", "quote": {"rich_text": rich(quote_text, idmap)}})
+            continue
         if ln.startswith("## "):
             blocks.append({"type": "heading_2", "heading_2": {"rich_text": rich(ln[3:], idmap)}})
         elif ln.startswith("### "):
@@ -123,10 +133,41 @@ def props(title, fm, grad_at, repo_prefix, idmap):
         p["tags"] = {"multi_select": [{"name": t} for t in fm["tags"]]}
     if fm.get("authoring_mode"):
         p["authoring_mode"] = {"select": {"name": fm["authoring_mode"]}}
+    for key in ("contributors", "graduated_by"):
+        values = fm.get(key) or []
+        if isinstance(values, str):
+            values = [values]
+        if values:
+            p[key] = {"multi_select": [{"name": value} for value in dict.fromkeys(values)]}
     gf = gfrom_text(fm.get("graduated_from"), repo_prefix)
     if gf:
         p["graduated_from"] = {"rich_text": rich(gf, idmap)}
     return p
+
+
+def replace_body(page_id, blocks, token):
+    """Archive every current top-level child, then write supplied current truth."""
+    cursor = None
+    child_ids = []
+    while True:
+        path = f"blocks/{page_id}/children?page_size=100"
+        if cursor:
+            path += f"&start_cursor={cursor}"
+        children = api("GET", path, token=token)
+        if "__err__" in children:
+            raise SystemExit(f"list body failed {page_id}: {children}")
+        child_ids.extend(child["id"] for child in children.get("results", []))
+        if not children.get("has_more"):
+            break
+        cursor = children.get("next_cursor")
+    for child_id in child_ids:
+        removed = api("DELETE", f"blocks/{child_id}", token=token)
+        if "__err__" in removed:
+            raise SystemExit(f"delete block failed {child_id}: {removed}")
+    if blocks:
+        written = api("PATCH", f"blocks/{page_id}/children", {"children": blocks}, token=token)
+        if "__err__" in written:
+            raise SystemExit(f"replace body failed {page_id}: {written}")
 
 
 def main():
@@ -160,19 +201,35 @@ def main():
         print(json.dumps({t: "<dry-run>" for t, _, _ in notes}, ensure_ascii=False))
         return
 
-    # idempotency: existing (non-archived) titles
+    # Existing (non-archived) titles. Follow every query page so an update
+    # target beyond the first 100 rows is not mistaken for a new page.
     existing = {}
-    q = api("POST", f"databases/{a.db}/query", {"page_size": 100}, token=token)
-    if "__err__" not in q:
+    cursor = None
+    while True:
+        query = {"page_size": 100}
+        if cursor:
+            query["start_cursor"] = cursor
+        q = api("POST", f"databases/{a.db}/query", query, token=token)
+        if "__err__" in q:
+            raise SystemExit(f"database query failed: {q}")
         for r in q["results"]:
             nm = "".join(x["plain_text"] for x in r["properties"]["Name"]["title"])
             existing[nm] = r["id"]
+        if not q.get("has_more"):
+            break
+        cursor = q.get("next_cursor")
 
-    # Pass 1: create pages (properties only)
+    # Pass 1: create pages or update properties on the existing same-title page.
     idmap = dict(existing)
     for title, fm, body in notes:
         if title in idmap:
-            print(f"  skip(existing) {title}", file=sys.stderr); continue
+            res = api("PATCH", f"pages/{idmap[title]}",
+                      {"properties": props(title, fm, a.graduated_at, a.repo_prefix, {})},
+                      token=token)
+            if "__err__" in res:
+                raise SystemExit(f"update failed {title}: {res}")
+            print(f"  updated {title} -> {idmap[title]}", file=sys.stderr)
+            continue
         res = api("POST", "pages",
                   {"parent": {"database_id": a.db}, "properties": props(title, fm, a.graduated_at, a.repo_prefix, {})},
                   token=token)
@@ -181,16 +238,11 @@ def main():
         idmap[title] = res["id"]
         print(f"  created {title} -> {res['id']}", file=sys.stderr)
 
-    # Pass 2: append bodies with mentions resolved
+    # Pass 2: replace bodies with mentions resolved.
     for title, fm, body in notes:
         pid = idmap[title]
-        kids = api("GET", f"blocks/{pid}/children?page_size=1", token=token)
-        if "__err__" not in kids and kids.get("results"):
-            print(f"  body-exists skip {title}", file=sys.stderr); continue
-        r = api("PATCH", f"blocks/{pid}/children", {"children": md_to_blocks(body, idmap)}, token=token)
-        if "__err__" in r:
-            raise SystemExit(f"append failed {title}: {r}")
-        print(f"  body -> {title}", file=sys.stderr)
+        replace_body(pid, md_to_blocks(body, idmap), token)
+        print(f"  body replaced -> {title}", file=sys.stderr)
 
     print(json.dumps({t: idmap[t] for t, _, _ in notes}, ensure_ascii=False))
 

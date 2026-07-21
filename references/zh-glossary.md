@@ -14,12 +14,16 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 | negative adoption | 排除法式采用 |
 | topic note | 知识专题文档 |
 | knowledge base | 知识库 |
+| contributor | 贡献者 |
+| origin quote | 原话引述 |
+| scene summary | 场景摘要 |
 | current truth | 当前真相 |
 | distill | 沉淀 |
 | knowledge distillation | 知识沉淀 |
 | conflict arbitration | 冲突仲裁 |
 | cascading defaults | 分级默认值 |
 | provider | provider（不译） |
+| deferred provider / defer connecting | 暂缓对接 |
 | roadmap | 路线图 |
 | milestone | 里程碑 |
 | open question | 开放问题 |

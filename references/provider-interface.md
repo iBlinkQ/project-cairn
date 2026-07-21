@@ -8,6 +8,7 @@ The behavioral contract every graduation-provider adapter script (preflight + gr
 - Print a JSON verdict to stdout with at minimum `status` (string) and `next` (string, human-actionable guidance) keys. Additional provider-specific diagnostic fields (`cli_installed`, `db_readable`, `has_wiki_scope`, ...) are expected and do not need to match names across providers.
 - Exit code 0 if and only if `status == "ok"`. Every other status exits 1.
 - `status == "ok"` is the caller's signal that it is safe to proceed to the graduate script — nothing else needs to be re-checked.
+- A schema-backed provider must validate both required property names and their types. Missing names and incompatible existing types are different failures: Notion reports `db_props_missing` for the former and `db_prop_type_mismatch` plus `{property,expected,actual}` entries for the latter.
 
 ## `create_note` (the graduate script's core operation)
 
@@ -18,14 +19,25 @@ The behavioral contract every graduation-provider adapter script (preflight + gr
     - **Native structured fields** (Notion): frontmatter flags map to real database properties (Select/Multi-select/Text/Date), physically separate from the page body.
     - **Embedded text block** (Obsidian, Lark): frontmatter flags are assembled into a YAML-formatted text block written as literal content at the top of the note/document. This is not "native" the way Notion's properties are. For Obsidian it matches the platform's own on-disk format exactly. For Lark, this is a human-readable text expression of structured intent; confirmed NOT to survive as parseable YAML through Feishu's markdown conversion — the `---` markers themselves survive as literal text, but nested list entries (`graduated_from`'s `- project: ... / path: ...`) lose their indentation on round-trip, so a YAML parser either errors or silently misassigns `path` as a top-level sibling key instead of a field of the list entry. Treat the Lark frontmatter block as documentation for a human/agent reader, not a machine-re-parseable structure — see `cairn/LOG.md` 2026-07-02 for what was actually observed when this was tested.
   - `--graduated-from` is not a standardized flag across providers: Obsidian and Lark take it as a repeatable `"<project>|<path>"` structured entry (matching production `graduated_from` frontmatter — see `frontmatter.md`); Notion's existing `--graduated-from` takes a single plain-text value written into one `rich_text` property. Same flag name, three different semantics — don't assume interchangeable.
+  - Every adapter must provide repeatable `--contributor NAME` and `--graduated-by NAME` capabilities. Each flag occurrence adds one human-readable name to the corresponding list; preserve list shape even when there is only one name, and de-duplicate repeated identities without changing their first-seen order. Identity resolution belongs to the graduation workflow, not the low-level adapter.
+  - Low-level adapters must remain backward-compatible when these flags are omitted. The graduation workflow, however, must always pass at least one `--graduated-by NAME` for every new graduation and re-graduation; absence is supported only for legacy/direct low-level calls, not new workflow output.
 - Output JSON must include one location/identifier field and one link/URL field, at minimum. Exact field names are provider-appropriate, not standardized (`{id,url}` for Notion, `{path,obsidian_url}` for Obsidian, `{node_token,obj_token,url}` for Lark).
 - Must attempt a read-back verification after writing. A verification mismatch or failure degrades to a `warn:` on stderr — it must never roll back or fail the overall operation, since the object/file has already been created.
+
+## `update_note` (re-graduation into an existing target)
+
+- Every provider adapter must expose an explicit update mode that targets the exact location/identifier returned by the original `create_note`. Create mode remains backward-compatible when the update identifier is omitted.
+- Update mode replaces the existing note's body and writes the supplied current properties/frontmatter on that same object. It must not create a second provider object and must not append a second copy of the body.
+- The graduation workflow, not the low-level adapter, reads the prior provenance and resolves the new de-duplicated `graduated_by` union. The adapter faithfully writes the complete supplied list; it must neither invent identities nor silently merge against provider state.
+- Provider identifiers are explicit: Obsidian uses the same vault-relative note path (`--force` authorizes overwrite); Lark requires the existing `node_token`, `obj_token`, and URL; Notion requires the existing page ID. The success JSON returns those same identifiers.
+- Replacement mechanics are provider-native: Obsidian atomically replaces the same file; Lark uses the installed CLI's `docs +update --command overwrite`; Notion PATCHes page properties, archives every current top-level child block, then appends the replacement children. Replacement can remove provider-only body content, so re-graduation remains human-confirmed.
+- Read-back and `--dry-run` obligations from `create_note` apply equally to update mode.
 
 ## `update_index` (optional per provider)
 
 - Not every provider needs this step. When a provider's container structure already serves as the index (Notion: the database's own views/properties), there is no separate index step, and the contract does not require inventing one.
 - When a provider does support an index-append step, **it must be idempotent**: before appending, check whether an entry for this note already exists in the index, and skip the append if so. Match on a bounded, unambiguous delimiter (e.g. the markdown link-open form `[$TITLE](` or a WikiLink `[[$TITLE]]`) — a bare substring check produces false positives (an entry titled "Lark CLI 踩坑合集" would substring-match a new graduation titled "Lark CLI") that skip the append and leave the newly-created object orphaned, unreachable from the index, which is worse than the duplicate line this clause exists to prevent.
-- Idempotent index-append does not imply idempotent object creation. A provider whose API has no create-if-not-exists (Lark, Notion) will still create a new underlying object on every call; only the index *line* is deduplicated.
+- Idempotent index-append does not turn create mode into an upsert. A repeated create call may still make another underlying object; re-graduation must select explicit `update_note` mode with the stored original identifier.
 
 ## Read side: `query` (documented capability, not an adapter script)
 

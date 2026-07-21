@@ -6,7 +6,7 @@ Initialize or retrofit Project Cairn in a project. This is an interactive setup 
 
 1. Project name and one-line summary.
 2. Whether `cairn/` is committed, ignored, or privately synced (`git_policy`: `track` | `ignore` | `private_sync`). If `cairn/Reference/` (see decision list in `assets/templates/config.yaml`) is expected to hold externally-owned or sensitive raw material — a client's PDF, a call transcript — offer a separate, optionally more conservative `reference_git_policy` for it alone; omitting it means Reference/ simply inherits `git_policy`.
-3. Graduation provider(s): collect one or more targets (e.g. Obsidian, Lark/Feishu CLI, Notion).
+3. Graduation provider(s): collect zero or more targets (e.g. Obsidian, Lark/Feishu CLI, Notion). "Not yet" is a first-class answer — the user may defer connecting any knowledge base until the first graduation (see "Deferred graduation provider" below).
 4. For each provider, collect target and index location. Do not hardcode concrete Obsidian vault paths or directory names; those are user/project choices.
 5. Historical knowledge strategy (`migration_mode`). Default: `start_fresh`.
 6. Documentation language used when writing generated files (`AGENTS.md`, `cairn/LOG.md`, `cairn/ROADMAP.md`, topic notes). Default: `en`.
@@ -65,6 +65,29 @@ Example (Obsidian + Notion): `Graduation provider(s): Obsidian (vault: ExampleVa
 
 This joined multi-value form applies specifically to the three `Init configuration` bullets. The same `{{KNOWLEDGE_INDEX}}` / `{{GRADUATION_TARGET}}` tokens also recur in two other template sentences — the "Knowledge base consumption reflex" bullet and the "Knowledge distillation rules" bullet. For multi-provider projects, don't repeat the full joined value there; point back to the section instead: replace `check {{KNOWLEDGE_INDEX}} first` with `check the configured provider indices first (see Init configuration above)`, and `distilled into {{GRADUATION_TARGET}} via the graduation mechanism` with `distilled into the configured provider target(s) via the graduation mechanism (see Init configuration above)`. Single-provider projects keep the direct substitution unchanged in all four locations.
 
+### Deferred graduation provider (connect later)
+
+Requiring a provider at init would gate first contact on having Obsidian/Notion/Lark ready — but the core mechanisms (LOG, topic notes, audit, consuming the project's own notes) need no provider at all; graduation is a cross-project feature, not a first-contact requirement. So "not yet" is a valid answer to decision #3. When the user defers:
+
+- Skip decision #4 and every provider preflight.
+- Freeze the deferred state into `.cairn/config.yaml` as `provider: none` under `graduation:` (form (c) in `assets/templates/config.yaml`) — no `target`/`index` keys, no `providers:` list.
+- Do not write `none` into `~/.config/cairn/config.yaml`: deferring is a per-project choice, and the user-level `providers` directory holds real targets only. When a user-level config with saved providers exists, still offer the one-key reuse — but a deliberate "not yet" wins over the saved defaults.
+- Everything else about init proceeds unchanged.
+
+Late binding: the provider decisions (#3–#4) are collected at the first graduation instead — see `graduation.md` → "Deferred provider". Until then, `consume.md`'s external INDEX check has no target and reduces to the project's own `cairn/` notes, and `audit.md` surfaces confirmed candidates left waiting.
+
+**`AGENTS.md` rendering when deferred** — the three `Init configuration` lines:
+
+- `Graduation provider(s):` → `none yet (deferred — connect a knowledge base at first graduation)`
+- `Knowledge base index:` and `Graduation target:` → `not configured yet`
+
+And the two body sentences that reuse the same tokens:
+
+- The "Knowledge base consumption reflex" bullet becomes: `Before work whose reusable kernel — any conclusion it produces or depends on — would be graduation-worthy, consult this project's own cairn/ topic notes; no external knowledge base is connected yet (provider deferred — see Init configuration above), so the external index check and cairn/Cited.md citations activate once one is connected.`
+- In the "Knowledge distillation rules" bullet, replace `distilled into {{GRADUATION_TARGET}} via the graduation mechanism` with `distilled via the graduation mechanism once a knowledge base is connected (provider deferred — see Init configuration above)`.
+
+When a provider is connected later, restore all these locations to the standard single-/multi-provider rendering above. Translate per the project's `language` (Chinese: 暂缓对接, see `references/zh-glossary.md`).
+
 ### Provider target naming
 
 Any human-facing name for a graduation target — an Obsidian folder, a Notion database title, a Lark/Feishu wiki space — is the **user's** to choose, not Project Cairn's. Ask for it explicitly during provider collection (decision #4) and freeze the answer into `.cairn/config.yaml`; never default it to "Project Cairn" or any other tool-authored string, even when Project Cairn itself is the project being initialized. When a provider adapter script needs the name to create something new (e.g. `notion-init-db.sh --title`), pass the collected value — the script should refuse to invent one.
@@ -85,7 +108,7 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 - The console step (open the coarse `wiki:wiki` scope for the **user** identity) is inherently manual — relay the preflight's instruction; the agent cannot click it. See `graduation.md` → Provider adapter constraints.
 
 **Notion provider:**
-- Detect: run `scripts/notion-preflight.sh --db <DATABASE_ID>` (read-only) → JSON `status` ∈ `not_authed` / `db_unshared` / `db_props_missing` / `net_error` / `ok`, each with the exact next action in `next`.
+- Detect: run `scripts/notion-preflight.sh --db <DATABASE_ID>` (read-only) → JSON `status` ∈ `not_authed` / `db_unshared` / `db_props_missing` / `db_prop_type_mismatch` / `net_error` / `ok`, each with the exact next action in `next`; type mismatches include stable `{property,expected,actual}` details.
 - Setup (mostly manual — credentials/account steps the agent cannot do): create an internal integration at <https://www.notion.so/profile/integrations> (Read+Insert+Update content) → put its `ntn_` token in `.env` as `NOTION_API_TOKEN` → create/pick the knowledge-base **database** and **share it with the integration** (••• → Connections). The agent CAN create the DB + property columns via REST once the token is set and a parent page is shared.
 - Transport: direct REST via curl (the `ntn` CLI is unreliable behind an HTTPS proxy). See `graduation.md` → Notion adapter (worked example).
 

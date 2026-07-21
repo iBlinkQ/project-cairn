@@ -10,6 +10,8 @@ Apply the **graduation-symmetry test** before starting a piece of work (writing 
 
 The project's own `cairn/` topic notes take precedence: consult them first, and let the INDEX check trigger only for what the project itself has no recorded conclusion on.
 
+With a deferred provider (`graduation.provider: none` in `.cairn/config.yaml`), there is no external INDEX to check yet: the reflex reduces to the project's own `cairn/` topic notes until a knowledge base is connected at the first graduation (`graduation.md` → Deferred provider).
+
 Examples of applying the test (not an exhaustive list):
 
 - Integrating an external API/SDK this project hasn't used before, where such integration experience is typically reusable → check.

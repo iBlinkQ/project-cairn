@@ -24,10 +24,10 @@
 #     one provider with native WikiLink support (config.yaml's
 #     `link_format: wikilink`), so no rewrite step is needed here the way
 #     Notion needs a two-pass title->page-mention conversion.
-#   - Overwrite protection: unlike Lark/Notion (each API call always creates
-#     a new distinct object), writing straight to a vault path can silently
-#     clobber an existing file with the same title. Refuses to overwrite
-#     unless --force is passed.
+#   - Overwrite protection: writing straight to a vault path can silently
+#     clobber an existing file with the same title. Create mode refuses to
+#     overwrite; explicit re-graduation uses --force to atomically replace the
+#     same path with caller-supplied current truth.
 #   - INDEX append is idempotent: skips the append if `[[Title]]` already
 #     appears in the INDEX file, so a --force re-run (the only way to reach
 #     this code path twice for the same title -- overwrite protection blocks
@@ -45,6 +45,7 @@
 #       [--content FILE] [--index "<folder>/INDEX.md"]
 #       [--type knowledge_note] [--summary TEXT] [--contains a,b,c] [--tags a,b,c]
 #       --graduated-from "<project>|<source path>" [--graduated-from "..." ...]
+#       [--contributor NAME ...] [--graduated-by NAME ...]
 #       [--authoring-mode ai_generated] [--force] [--dry-run]
 #
 # Output (stdout): JSON { path, obsidian_url }
@@ -59,6 +60,8 @@ VAULT=""; TITLE=""; TARGET=""; CONTENT_FILE=""; INDEX=""
 TYPE="knowledge_note"; SUMMARY=""; CONTAINS=""; TAGS=""; AMODE="ai_generated"
 FORCE=0; DRY_RUN=0
 GFROM_ENTRIES=()
+CONTRIBUTOR_ENTRIES=()
+GRADUATED_BY_ENTRIES=()
 RETRIES=4
 
 die() { echo "error: $*" >&2; exit 1; }
@@ -75,10 +78,16 @@ while [ $# -gt 0 ]; do
     --contains) CONTAINS="${2:-}"; shift 2;;
     --tags) TAGS="${2:-}"; shift 2;;
     --graduated-from) GFROM_ENTRIES+=("${2:-}"); shift 2;;
+    --contributor)
+      [ -n "${2:-}" ] || die "--contributor requires a non-empty display name"
+      CONTRIBUTOR_ENTRIES+=("$2"); shift 2;;
+    --graduated-by)
+      [ -n "${2:-}" ] || die "--graduated-by requires a non-empty display name"
+      GRADUATED_BY_ENTRIES+=("$2"); shift 2;;
     --authoring-mode) AMODE="${2:-}"; shift 2;;
     --force) FORCE=1; shift;;
     --dry-run) DRY_RUN=1; shift;;
-    -h|--help) sed -n '2,44p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
+    -h|--help) sed -n '2,55p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
     *) die "unknown arg: $1";;
   esac
 done
@@ -107,6 +116,24 @@ yaml_flow_list() { # comma-separated -> [a, b, c] (empty -> [])
   unset IFS
   printf '[%s]' "$out"
 }
+yaml_block_list() { # field, repeatable values; empty -> no output
+  field="$1"; shift; body=""
+  seen_entries=()
+  for item in "$@"; do
+    [ -z "$item" ] && continue
+    duplicate=0
+    for seen in "${seen_entries[@]:-}"; do
+      [ -z "$seen" ] && continue
+      [ "$seen" = "$item" ] && duplicate=1 && break
+    done
+    [ "$duplicate" -eq 1 ] && continue
+    seen_entries+=("$item")
+    body="$body
+  - $(yaml_scalar "$item")"
+  done
+  [ -n "$body" ] && printf '%s:%s\n' "$field" "$body"
+  return 0
+}
 
 # --- resolve vault path (read dependency before any write) ---
 VAULT_PATH=""
@@ -132,6 +159,8 @@ fi
 # --- assemble frontmatter ---
 CONTAINS_YAML="$(yaml_flow_list "$CONTAINS")"
 TAGS_YAML="$(yaml_flow_list "$TAGS")"
+CONTRIBUTORS_YAML="$(yaml_block_list contributors "${CONTRIBUTOR_ENTRIES[@]:-}")"
+GRADUATED_BY_YAML="$(yaml_block_list graduated_by "${GRADUATED_BY_ENTRIES[@]:-}")"
 GFROM_YAML=""
 for e in "${GFROM_ENTRIES[@]}"; do
   proj="${e%%|*}"; path="${e#*|}"
@@ -139,13 +168,18 @@ for e in "${GFROM_ENTRIES[@]}"; do
   - project: $(yaml_scalar "$proj")
     path: $(yaml_scalar "$path")"
 done
+PROVENANCE_YAML=""
+[ -n "$CONTRIBUTORS_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
+$CONTRIBUTORS_YAML"
+[ -n "$GRADUATED_BY_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
+$GRADUATED_BY_YAML"
 
 FRONTMATTER="---
 type: $TYPE
 summary: $(yaml_scalar "$SUMMARY")
 contains: $CONTAINS_YAML
 tags: $TAGS_YAML
-graduated_from:$GFROM_YAML
+graduated_from:$GFROM_YAML$PROVENANCE_YAML
 authoring_mode: $AMODE
 ---"
 
