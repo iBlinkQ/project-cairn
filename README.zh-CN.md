@@ -19,6 +19,8 @@
 
 Project Cairn 是一个 Agent Skill。它让 Agent 在正常推进项目时，把已经验证的踩坑经验、关键决策、探索成果和灵感洞见留在项目里。真正值得跨项目复用的内容，再由你确认后进入长期知识库。
 
+![Project Cairn 与 AI Agent、知识库及相关生态的关系图](docs/assets/screenshots/project-cairn-ecosystem-zh-CN.png)
+
 它提供一套稳定的文档分工和流转规则：
 
 - `AGENTS.md` 保存 Agent 每次进入项目都要遵守的规则。

@@ -19,6 +19,8 @@
 
 Project Cairn is an agent skill. During normal project work, it helps the agent keep validated pitfall lessons, key decisions, exploration findings, and sparks of insight inside the project. When something is genuinely reusable elsewhere, the agent can prepare it for a long-term knowledge base after you confirm it.
 
+![How Project Cairn connects AI agents, knowledge bases, and adjacent tools](docs/assets/screenshots/project-cairn-ecosystem-en.png)
+
 The files have distinct jobs:
 
 - `AGENTS.md` holds the rules the agent reads whenever it enters the project.
