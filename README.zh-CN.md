@@ -4,7 +4,7 @@
 
 **把做过的事情，沉淀成可复用的知识。**
 
-[打开交互式可视化，查看完整的两侧结构和九步流程](https://iblinkq.github.io/project-cairn/)
+[打开交互说明页面，了解 Skill 详情](https://iblinkq.github.io/project-cairn/)
 
 [![Project Cairn 中文交互式可视化概览](docs/assets/screenshots/project-cairn-overview-zh-CN.png)](https://iblinkq.github.io/project-cairn/)
 

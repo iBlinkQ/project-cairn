@@ -4,7 +4,7 @@
 
 **Turn project work into reusable knowledge.**
 
-[Open the interactive visual overview for the full two-side structure and nine-step flow](https://iblinkq.github.io/project-cairn/)
+[Open the interactive guide to learn more about the Skill](https://iblinkq.github.io/project-cairn/)
 
 [![Project Cairn interactive visual overview in English](docs/assets/screenshots/project-cairn-overview-en.png)](https://iblinkq.github.io/project-cairn/)
 
