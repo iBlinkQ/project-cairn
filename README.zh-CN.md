@@ -130,7 +130,7 @@ Project Cairn 已验证三种毕业目标：
 - **Notion**：写入数据库，数据库同时承担容器和索引，属性列承接结构化元数据。
 - **飞书 / Lark wiki**：写入知识空间的节点树，并保留可回查的文档链接。
 
-每种 provider 都遵守 `references/provider-interface.md` 中的行为契约，同时保留平台自己的链接和索引方式。真正写入前，可以先运行对应的只读检查：
+每种 provider 都遵守 `references/provider-interface.md` 中的行为契约，同时保留平台自己的链接和索引方式。各 provider 的具体执行路径位于 `references/graduation/`。真正写入前，可以先运行对应的只读检查：
 
 ```text
 scripts/obsidian-preflight.sh
@@ -158,6 +158,7 @@ Project Cairn 不是用来替代所有相关工具的：
 | `references/init.md` | 初始化或补建 Project Cairn |
 | `references/maintenance.md` | 维护 `LOG.md`、`ROADMAP.md` 和主题文档 |
 | `references/graduation.md` | 判断、蒸馏并写入可复用知识 |
+| `references/graduation/` | 每个 provider 一份的毕业执行路径（Lark wiki、Notion、Obsidian） |
 | `references/provider-interface.md` | provider adapter 的行为契约 |
 | `references/consume.md` | 检索、使用并引用外部知识 |
 | `references/audit.md` | 找出漂移、矛盾和缺失记录 |
@@ -168,7 +169,7 @@ Project Cairn 不是用来替代所有相关工具的：
 
 ## 贡献
 
-欢迎 Issue 和 PR。v0.1 以文档规则为主，贡献通常会落在 `SKILL.md`、`references/*.md`、`assets/templates/*` 或 `scripts/`。如果改动了行为，请在 PR 里说明原因和影响范围。
+欢迎 Issue 和 PR。Project Cairn 以文档规则为主，贡献通常会落在 `SKILL.md`、`references/*.md`、`assets/templates/*` 或 `scripts/`。如果改动了行为，请在 PR 里说明原因和影响范围。
 
 ## License
 

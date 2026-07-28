@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # lark-wiki-graduate.sh — Project Cairn graduation adapter for the Lark/Feishu wiki provider.
 #
-# Encodes the verified adapter constraints (see references/graduation.md →
-# "Provider adapter constraints" and references/provider-interface.md):
+# Encodes the verified adapter constraints (see references/graduation/lark-wiki.md
+# and references/provider-interface.md):
 #   - user identity + the coarse `wiki:wiki` scope. Granular read scopes
 #     (wiki:space:retrieve / wiki:space:read / wiki:node:read) may never enter
 #     the user token on CLI-style apps; the write-capable wiki:wiki does.

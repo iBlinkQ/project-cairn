@@ -19,7 +19,7 @@ Defines project-side and knowledge-base-side frontmatter.
 - `related`
 - `authoring_mode`
 
-## Knowledge-base note — required fields (v0.1)
+## Knowledge-base note — required fields
 
 - `type`
 - `summary`
@@ -33,7 +33,7 @@ Conditionally present when identifiable human contributors exist:
 
 - `contributors`
 
-`graduated_from` and a non-empty `graduated_by` are required on the knowledge-base side for every new graduation. Project-side `graduated_to` is recommended but not mandatory. Applicability, version/time context, last-verification time, and source backlinks should appear in the note body if not promoted to frontmatter in v0.1. Legacy notes remain valid under the audit policy: backfill `contributors` when a team topic is touched and `graduated_by` when it is re-graduated.
+`graduated_from` and a non-empty `graduated_by` are required on the knowledge-base side for every new graduation. Project-side `graduated_to` is recommended but not mandatory. Applicability, version/time context, last-verification time, and source backlinks should appear in the note body when they are not promoted to frontmatter. Legacy notes remain valid under the audit policy: backfill `contributors` when a team topic is touched and `graduated_by` when it is re-graduated.
 
 ### `graduated_from` shape
 
@@ -71,8 +71,8 @@ graduated_by:
 ## Enum values
 
 - `type` (OKF-aligned concept-object kind):
-  - v0.1-produced: `project_topic` (project side), `knowledge_note` (knowledge-base side).
-  - forward-looking, not auto-created by v0.1 init/maintenance: `reference`, `playbook`, `decision_record`, `log_index`.
+  - currently produced: `project_topic` (project side), `knowledge_note` (knowledge-base side).
+  - forward-looking, not auto-created by init/maintenance: `reference`, `playbook`, `decision_record`, `log_index`.
 - `status`: `active`, `superseded`, `archived`, `needs_review`.
 - `contains` (controlled, multi-value): any of `decision`, `experience`, `lesson`, `procedure`, `reference`, `open_question`.
 - `graduation_status` (optional): `candidate`, `deferred`, `not_applicable`.

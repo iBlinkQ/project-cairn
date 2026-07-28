@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # obsidian-graduate.sh — Project Cairn graduation adapter for the Obsidian provider.
 #
-# Encodes the verified adapter constraints (see references/graduation.md ->
-# "Provider adapter constraints" and scripts/obsidian-preflight.sh):
+# Encodes the verified adapter constraints (see references/graduation/obsidian.md,
+# references/provider-interface.md, and scripts/obsidian-preflight.sh):
 #   - The `obsidian` CLI is used only to RESOLVE the vault (read dependency,
 #     same "create_note is not a pure write" principle as Lark/Notion) and to
 #     read the file back for verification. The note body itself is written

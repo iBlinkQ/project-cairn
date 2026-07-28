@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # notion-graduate.sh — Project Cairn graduation adapter for the Notion provider.
 #
-# Encodes the verified adapter constraints (see references/graduation.md →
-# "Provider adapter constraints" / cairn Notion Provider notes):
+# Encodes the verified adapter constraints (see references/graduation/notion.md,
+# references/provider-interface.md, and cairn Notion Provider notes):
 #   - Direct REST via curl (honors HTTPS_PROXY), NOT the `ntn` CLI (unreliable
 #     behind a proxy: fetches an OpenAPI spec to resolve endpoints, does not
 #     honor the proxy, fails PATCH/query).

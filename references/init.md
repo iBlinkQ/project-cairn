@@ -43,14 +43,14 @@ When the resolved `language` is not English, write `AGENTS.md` / `cairn/LOG.md` 
 
 ### What lands in the project
 
-The project-level `.cairn/config.yaml` stores the **fully resolved (frozen) config**, not just the diff against user-level defaults — so a collaborator who clones the repo gets a complete, portable config without needing the author's `~/.config/cairn`. (A sparse "diff-only" form is a possible later optimization; v0.1 freezes.)
+The project-level `.cairn/config.yaml` stores the **fully resolved (frozen) config**, not just the diff against user-level defaults — so a collaborator who clones the repo gets a complete, portable config without needing the author's `~/.config/cairn`. (A sparse "diff-only" form is a possible later optimization; the current format freezes the full result.)
 
 ### Multiple providers
 
 When more than one provider is enabled, write `graduation.providers` as a list instead of the single `provider`/`target`/`index` keys (see `assets/templates/config.yaml` for the shape). Each entry needs `target` + `index` plus whatever **provider-specific adapter settings** the writer requires — these are not uniform across providers:
 
 - Obsidian: `link_format: wikilink`, vault-relative `target`/`index`.
-- Lark/Feishu wiki: `space_id`, `index_node_token`, `scope: wiki:wiki`, `api: native`, `identity: user`, `link_format: url` (see `graduation.md` → Provider adapter constraints).
+- Lark/Feishu wiki: `space_id`, `index_node_token`, `scope: wiki:wiki`, `api: native`, `identity: user`, `link_format: url` (see `graduation/lark-wiki.md`).
 
 Collect these per-provider details at init time; do not assume one provider's fields apply to another.
 
@@ -105,19 +105,19 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 **Lark/Feishu wiki provider:**
 - Detect: run `scripts/lark-preflight.sh` (read-only) → JSON `status` ∈ `cli_missing` / `not_authed` / `missing_wiki_scope` / `ok`, each with the exact next action in `next`.
 - Install (offer to run for the user on confirmation): `npm install -g @larksuite/cli && npx skills add larksuite/cli -y -g`, then `lark-cli config init` and `lark-cli auth login --recommend`. Docs: <https://github.com/larksuite/cli>.
-- The console step (open the coarse `wiki:wiki` scope for the **user** identity) is inherently manual — relay the preflight's instruction; the agent cannot click it. See `graduation.md` → Provider adapter constraints.
+- The console step (open the coarse `wiki:wiki` scope for the **user** identity) is inherently manual — relay the preflight's instruction; the agent cannot click it. See `graduation/lark-wiki.md`.
 
 **Notion provider:**
 - Detect: run `scripts/notion-preflight.sh --db <DATABASE_ID>` (read-only) → JSON `status` ∈ `not_authed` / `db_unshared` / `db_props_missing` / `db_prop_type_mismatch` / `net_error` / `ok`, each with the exact next action in `next`; type mismatches include stable `{property,expected,actual}` details.
 - Setup (mostly manual — credentials/account steps the agent cannot do): create an internal integration at <https://www.notion.so/profile/integrations> (Read+Insert+Update content) → put its `ntn_` token in `.env` as `NOTION_API_TOKEN` → create/pick the knowledge-base **database** and **share it with the integration** (••• → Connections). The agent CAN create the DB + property columns via REST once the token is set and a parent page is shared.
-- Transport: direct REST via curl (the `ntn` CLI is unreliable behind an HTTPS proxy). See `graduation.md` → Notion adapter (worked example).
+- Transport: direct REST via curl (the `ntn` CLI is unreliable behind an HTTPS proxy). See `graduation/notion.md`.
 
 **Obsidian provider:**
 - Detect: run `scripts/obsidian-preflight.sh --vault "<vault name>" [--target "<folder>"] [--index "<folder>/INDEX.md"]` (read-only) → JSON `status` ∈ `cli_missing` / `app_unreachable` / `vault_unknown` / `vault_unreachable` / `ok`, each with the exact next action in `next`.
 - Install: unlike Lark/Notion, there is **no command the agent can run to install this** — the `obsidian` CLI ships inside the Obsidian.app bundle itself (1.12+) and is enabled with a GUI toggle: Settings → General → "Command line interface". Relay that exact step and stop; step 2's "offer to install it" does not apply here. Docs: <https://help.obsidian.md/cli>.
 - Setup: the target **vault** must already be registered with Obsidian (opened at least once via File → Open vault) and the desktop app must be running when preflight/graduation runs — the CLI talks to a live instance, not vault files directly.
 - Reliability note: switching the CLI's active vault is asynchronous and its exit codes are not trustworthy signals of success/failure in general — `obsidian-preflight.sh` retries past known-empty-response and known-nonzero-exit-but-actually-failed cases; don't reimplement a one-shot check against this CLI elsewhere.
-- Writing: `scripts/obsidian-graduate.sh` writes the note directly to the vault's filesystem (not through the CLI) and owns YAML frontmatter construction, including the structured `graduated_from` list. See `graduation.md` → Obsidian adapter (worked example).
+- Writing: `scripts/obsidian-graduate.sh` writes the note directly to the vault's filesystem (not through the CLI) and owns YAML frontmatter construction, including the structured `graduated_from` list. See `graduation/obsidian.md`.
 
 ## Files to create or update
 

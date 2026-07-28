@@ -130,7 +130,7 @@ Project Cairn has verified graduation paths for:
 - **Notion**, using a database as both the container and index, with structured metadata mapped to properties.
 - **Lark / Feishu wiki**, using nodes in a knowledge-space tree with links that can be read back.
 
-Every provider follows the behavioral contract in `references/provider-interface.md` while keeping its platform's native link and index model. Before any write, the matching read-only preflight can check installation, authentication, and access:
+Every provider follows the behavioral contract in `references/provider-interface.md` while keeping its platform's native link and index model. Provider-specific execution paths live under `references/graduation/`. Before any write, the matching read-only preflight can check installation, authentication, and access:
 
 ```text
 scripts/obsidian-preflight.sh
@@ -158,6 +158,7 @@ An agent remembering something is not the same as a project learning it.
 | `references/init.md` | Initializing or retrofitting Project Cairn |
 | `references/maintenance.md` | Maintaining `LOG.md`, `ROADMAP.md`, and topic notes |
 | `references/graduation.md` | Judging, distilling, and writing reusable knowledge |
+| `references/graduation/` | One execution path per provider (Lark wiki, Notion, Obsidian) |
 | `references/provider-interface.md` | The behavioral contract for provider adapters |
 | `references/consume.md` | Searching, using, and citing external knowledge |
 | `references/audit.md` | Finding drift, contradictions, and missing records |
@@ -168,7 +169,7 @@ An agent remembering something is not the same as a project learning it.
 
 ## Contributing
 
-Issues and pull requests are welcome. v0.1 is documentation-first, so most contributions belong in `SKILL.md`, `references/*.md`, `assets/templates/*`, or `scripts/`. If a change affects behavior, explain the reason and impact in the pull request.
+Issues and pull requests are welcome. Project Cairn is documentation-first, so most contributions belong in `SKILL.md`, `references/*.md`, `assets/templates/*`, or `scripts/`. If a change affects behavior, explain the reason and impact in the pull request.
 
 ## License
 

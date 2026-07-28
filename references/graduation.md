@@ -1,6 +1,6 @@
 # graduation
 
-Human-confirmed promotion of validated project knowledge into an external knowledge base. One-directional: project → knowledge base. v0.1 must not silently graduate knowledge.
+Human-confirmed promotion of validated project knowledge into an external knowledge base. One-directional: project → knowledge base. The Skill must not silently graduate knowledge.
 
 ## Candidate criteria
 
@@ -68,59 +68,31 @@ When a topic that already has `graduated_to` gains a substantive new development
 
 ## Provider adapter constraints
 
-Every adapter script must satisfy `references/provider-interface.md` — the worked examples below show how each provider satisfies it, not a separate set of rules. Write mechanics differ per provider; keep them in each provider's `.cairn/config.yaml` entry, not hardcoded in the flow. Two cross-provider principles learned from real runs:
+Every adapter script must satisfy `references/provider-interface.md`. Cross-provider transport and API-surface principles live there; each provider reference below adds that provider's consequences.
 
-- **`create_note` is not always a pure write.** Some providers must *resolve the target* (space/folder/node) before creating, and resolution needs read access. A wiki provider's "create node" implicitly reads the space, so a write-only grant is insufficient. Model the read dependency explicitly; don't assume write scope alone lets you create.
-- **A provider's CLI conveniences may be stricter than its API.** Prefer the provider's raw/native API for graduation writes when its high-level shortcuts add their own preconditions (e.g. literal scope prechecks) that reject otherwise-valid calls.
-- **A provider's official CLI is not automatically the most reliable transport.** A CLI that fetches a remote spec to resolve endpoints, or that ignores `HTTPS_PROXY`, can fail in proxied/CI environments while direct REST against the same API works. Verify the transport in the real environment; be ready to fall back to direct REST (curl) with per-request retry for flaky egress (e.g. random SSL EOFs).
+Write mechanics differ per provider; keep them in each provider's `.cairn/config.yaml` entry, not hardcoded in the flow.
+
+Provider mechanics live in one reference per provider. Before any write, read that reference, run its Step 0 preflight, and proceed only on `status: ok`.
+
+| Provider type | Required provider reference | Required Step 0 preflight | Write adapter |
+|---|---|---|---|
+| `obsidian` | [`graduation/obsidian.md`](graduation/obsidian.md) | `scripts/obsidian-preflight.sh` | `scripts/obsidian-graduate.sh` |
+| `lark-wiki` | [`graduation/lark-wiki.md`](graduation/lark-wiki.md) | `scripts/lark-preflight.sh` | `scripts/lark-wiki-graduate.sh` |
+| `notion` | [`graduation/notion.md`](graduation/notion.md) | `scripts/notion-preflight.sh` | `scripts/notion-graduate.sh` |
+
+The write-adapter column pins each provider's primary single-note entry; the provider reference enumerates that provider's complete script set. If the configured provider is `none`, stay in the Deferred provider flow above until one is chosen. If the provider value is unsupported, its reference is missing or unread, or the named preflight has not returned `ok`, stop before any provider-side write and report the error. An absent preflight result is a blocking state, not permission to reconstruct provider mechanics from memory; a dry-run does not substitute for this gate before a later real write.
 
 ### Lark / Feishu wiki adapter (worked example)
 
-**Step 0 — preflight (run before any write).** `scripts/lark-preflight.sh` is read-only and returns a JSON verdict: `cli_missing` (not installed → give docs link, pause), `not_authed` (run `lark-cli auth login`), `missing_wiki_scope` (open `wiki:wiki` for user identity in the console, then re-auth), or `ok` (safe to graduate). Don't attempt the write loop until it reports `ok`.
-
-Verified path for graduating into a Feishu knowledge base with `lark-cli`, user identity:
-
-- **Scope:** request the coarse `wiki:wiki` (covers read + write). Granular read scopes (`wiki:space:retrieve` / `wiki:space:read` / `wiki:node:read`) may never enter the user token on CLI-style apps (they don't appear on the user consent page); the write-capable `wiki:wiki` does and reliably lands. Diagnostic: if `--as bot` works but `--as user` reports a missing scope, the block is in the user-authorization path, not the app's published permissions.
-- **API:** use native resource commands (`wiki spaces get`, `wiki nodes create`, `wiki nodes list`, `wiki spaces get_node`) + `docs +update`/`docs +fetch`. The `wiki +space-list` / `+node-create` shortcuts do strict literal scope prechecks that don't recognize `wiki:wiki` coverage and reject locally.
-- **Write loop:** create mode resolves the target space (`my_library` or a team `space_id`) → `wiki nodes create` (with `parent_node_token` to build the directory tree) → append initial body + frontmatter. Update mode receives the original node/document identifiers and uses the locally verified `docs +update --command overwrite` operation to replace that document. Both modes then `docs +fetch` to verify and maintain the optional INDEX/container link. Parent node = directory/index container; child nodes = individual graduated notes.
-- **Executable adapter:** `scripts/lark-wiki-graduate.sh` encodes both loops end-to-end, enforcing the constraints above. Content is piped via stdin to dodge the CLI's cwd-relative `@file` restriction. Run with `--dry-run` to preview the exact native API calls before writing.
-  - Frontmatter flags (`--type`/`--summary`/`--contains`/`--tags`/`--graduated-from`/`--contributor`/`--graduated-by`/`--authoring-mode`) are optional but recommended: when any is passed, the script assembles them into a YAML-formatted block prepended to the body (confirmed NOT to survive as parseable YAML after Feishu's markdown conversion — see `references/provider-interface.md` and `cairn/LOG.md` 2026-07-02). Passing none of them preserves the old exact behavior (content written as-is).
-  - `--index-doc` append is idempotent: it checks the index doc for an existing `[$TITLE](` entry before appending. Re-graduation uses update mode, so neither the node nor INDEX entry is duplicated.
-  - Create: `scripts/lark-wiki-graduate.sh --title T --content body.md --space-id <id|my_library> [--parent-node-token TOK] [--index-doc OBJ_TOKEN] [frontmatter flags…]`
-  - Update: add `--update-node-token NODE_TOKEN --update-obj-token OBJ_TOKEN --update-url URL` and pass the full caller-unioned provenance flags; all three target values are required together.
+Moved to [`graduation/lark-wiki.md`](graduation/lark-wiki.md).
 
 ### Notion adapter (worked example)
 
-**Step 0 — preflight (run before any write).** `scripts/notion-preflight.sh --db <DATABASE_ID>` is read-only and returns a JSON verdict: `not_authed` (`NOTION_API_TOKEN` unset/invalid), `db_unshared` (the integration can't see the DB — share it in Notion → ••• → Connections), `db_props_missing` (required property names are absent), `db_prop_type_mismatch` (names exist but one or more Notion property types are incompatible; inspect `property_type_mismatches`), `net_error` (proxy/SSL give-up), or `ok`. Don't write until `ok`.
-
-Verified path for graduating into a Notion knowledge base:
-
-- **Data model = database.** The DB is the knowledge-base container AND the INDEX (its views/properties are the index) — so there is **no `update_index` step** and no INDEX page to append into. Each graduated note is one DB row (page). Frontmatter maps to DB **properties**, not YAML: `type`/`authoring_mode`→Select, `contains`/`tags`/`contributors`/`graduated_by`→Multi-select, `graduated_from`→Text, `graduated_at`→Date. Existing databases are not migrated automatically: preflight reports missing properties and schema changes require confirmation.
-- **Transport = direct REST (curl), not the `ntn` CLI.** `ntn` fetches an OpenAPI spec to resolve endpoints, does not honor `HTTPS_PROXY`, and fails `PATCH`/`query` behind a proxy. Direct REST via curl honors the proxy; wrap every request in backoff **retry** to ride out random SSL EOFs.
-- **Auth = internal-integration token** in `NOTION_API_TOKEN` (kept in `.env`, referenced by name in config — never stored in `.cairn/config.yaml`). The DB (or its parent page) must be **shared with the integration** — this is the read dependency for `create_note`.
-- **Pin `Notion-Version: 2022-06-28`** (classic single-source database; avoids 2025-09-03+ data-source semantics).
-- **Write loop:** create mode sends one `POST /v1/pages` with `properties` + `children`. Update mode receives the existing page ID, PATCHes its properties, archives all existing top-level child blocks, and PATCHes replacement children. Both modes read back with `GET /v1/pages/{id}` to verify the title round-trips.
-- **Origin quotes stay native.** A contiguous Markdown `>` group (direct excerpt plus attribution) becomes one Notion `quote` block, preserving both parts together. Quote absence remains valid and creates no placeholder block.
-- **`[[wikilinks]]` → real page mentions need a batch two-pass** (create all pages, collect title→id, then write bodies with `mention` blocks). The single-note adapter renders wikilinks as bold title text; use the batch tool when graduating an interlinked set at once.
-- **Executable adapters** (all curl/REST + retry, pinned version; `--dry-run` previews):
-  - `scripts/notion-init-db.sh --parent-page-id PAGE_ID --title "<knowledge base name>"` — create the KB database with the Cairn property schema under a shared parent page. `--title` is required — it's the database's display name, collected from the user at init time (see `init.md` → provider target naming), never a hardcoded default.
-  - `scripts/notion-graduate.sh --db ID [--page-id EXISTING_PAGE_ID] --title T --content body.md [properties/provenance flags…]` — without `--page-id`, creates one page; with it, replaces that page's properties/body. Repeated provenance names→Multi-select, quote groups→native quote blocks, wikilinks→bold text. `--props-json` remains an expert override; the caller passes the complete current properties.
-  - `scripts/notion-graduate-batch.py --db ID --graduated-at DATE --src-dir DIR [--repo-prefix P]` — interlinked set, two-pass so `[[wikilinks]]` become real page mentions; frontmatter→properties (legacy scalar provenance names are tolerated but always written as first-seen de-duplicated Multi-select arrays); quote groups→native quote blocks. An existing title is updated in place (properties merged by PATCH, body replaced), not skipped. Python (urllib+retry) because the title→id graph is awkward in bash.
+Moved to [`graduation/notion.md`](graduation/notion.md).
 
 ### Obsidian adapter (worked example)
 
-**Step 0 — preflight (run before any write).** `scripts/obsidian-preflight.sh --vault "<vault name>" [--target "<folder>"] [--index "<folder>/INDEX.md"]` is read-only and returns a JSON verdict: `cli_missing`, `app_unreachable`, `vault_unknown`, `vault_unreachable`, or `ok`. Don't write until `ok`.
-
-Verified path for graduating into an Obsidian vault:
-
-- **The `obsidian` CLI is used only to resolve the vault path (read dependency) and, optionally, to read a note back for verification — not to write the note.** `obsidian create` takes content as a shell argument, the same length/quoting fragility Lark's adapter routes around with stdin; here the note is written directly to the vault's filesystem instead.
-- **Frontmatter is native YAML embedded in the note**, not external properties (Notion) and not left for the caller to hand-embed (Lark). The adapter owns frontmatter construction from flags, the same way `notion-graduate.sh` owns DB properties.
-- **`graduated_from` is a structured list of `{project, path}` entries**, not a scalar — see `frontmatter.md` → "`graduated_from` shape". Verified against notes already in production; several cite more than one source.
-- **`[[wikilinks]]` pass through unchanged.** Obsidian is the one provider with native WikiLink support (`config.yaml`'s `link_format: wikilink`) — no rewrite step, unlike Notion's two-pass mention conversion.
-- **Overwrite protection and update mode.** A direct filesystem write can silently clobber an existing note with the same title, so create mode refuses to overwrite. Re-graduation deliberately passes `--force`, atomically replacing that same vault-relative path with the full current note; the idempotent INDEX check preserves one `[[Title]]` entry.
-- **Two real CLI reliability gaps found while building this** (see `obsidian-preflight.sh` for the fixes): switching the CLI's active vault is asynchronous (first query after a switch can return an empty result with `rc=0`, not an error); several commands (e.g. reading a missing file) also return `rc=0` on failure, with the error only visible in the printed text. Don't trust a one-shot check or a bare exit code against this CLI.
-- **Executable adapter** (`--dry-run` previews the frontmatter and target path without touching the filesystem):
-  - `scripts/obsidian-graduate.sh --vault "<name>" --title T --target "<folder>" [--content body.md] [--index "<folder>/INDEX.md"] [--summary …] [--contains a,b] [--tags a,b] --graduated-from "<project>|<path>" [--graduated-from … repeatable] --contributor Alice --graduated-by Alice [--authoring-mode …] [--force]` — writes the note, optionally appends a `[[WikiLink]]` line to the INDEX file (creating it if it doesn't exist yet).
+Moved to [`graduation/obsidian.md`](graduation/obsidian.md).
 
 ## Knowledge-base links
 
