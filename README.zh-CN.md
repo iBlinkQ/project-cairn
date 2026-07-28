@@ -47,6 +47,14 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.claude/skills/project-
 git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-cairn
 ```
 
+**WorkBuddy**，通过本地 Skill 包安装：
+
+1. 下载 [Project Cairn ZIP](https://github.com/iBlinkQ/project-cairn/archive/refs/heads/main.zip)。
+2. 在 WorkBuddy 侧边栏打开“技能”，点击“添加技能”，再选择“上传技能”。
+3. 选择下载的 ZIP 文件。导入完成后，WorkBuddy 会自动配置，无需手动复制目录。
+
+操作入口见 [WorkBuddy 官方 Skill 文档](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Skills-Market)。
+
 其他兼容 Skill 的 Agent，把仓库 clone 到该 Agent 读取 Skill 的目录即可。安装后，`SKILL.md` 应直接位于 `project-cairn/` 根目录，不要再多嵌套一层。
 
 前置依赖是 `git`。`scripts/*.sh` 需要 `bash`，已在 macOS 和 Linux 上验证，Windows 需要 WSL 或 Git Bash；`scripts/*.py` 需要 Python 3。目前没有包管理器版本。

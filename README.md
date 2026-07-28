@@ -47,6 +47,14 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.claude/skills/project-
 git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-cairn
 ```
 
+**WorkBuddy**, import the local skill package:
+
+1. Download the [Project Cairn ZIP](https://github.com/iBlinkQ/project-cairn/archive/refs/heads/main.zip).
+2. Open Skills from the WorkBuddy sidebar. Select Add Skill, then Upload Skill.
+3. Choose the downloaded ZIP file. WorkBuddy configures it automatically, so you do not need to copy it into a directory.
+
+See the [official WorkBuddy skill guide](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Skills-Market) for the installation interface.
+
 For another skill-compatible agent, clone the repository into the directory where that agent loads skills. `SKILL.md` should sit directly at the root of `project-cairn/`, not inside another nested folder.
 
 Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3. There is no package-manager release yet.
