@@ -8,15 +8,12 @@
 
 [![Project Cairn interactive visual overview in English](docs/assets/screenshots/project-cairn-overview-en.png)](https://iblinkq.github.io/project-cairn/)
 
-## Why hit the same problem twice?
+## Sound familiar?
 
-I once spent several rounds with an AI agent debugging a messaging bot that would occasionally miss incoming messages. We found the cause, tested the fix, and moved on.
-
-Then the same problem appeared in a second project. I knew I had solved it before, but the answer was buried in an old chat. I had to reopen the first project, find the conversation, and ask the agent to turn it into a Markdown note before the new project could use it.
-
-The project rules were just as improvised. One repository had `Memory.md`, another had `Plan.md`, and a third used `Learn.md`. Logs, plans, decisions, and lessons ended up in the same growing file. After a while, nobody could tell which paragraph still represented the current conclusion.
-
-Project Cairn starts there. A solved problem should not be trapped in yesterday's chat, and every new project should not need a newly invented knowledge system.
+- The same problem comes back in the next project.
+- Start a new session or switch agents, and you are explaining the context and rules all over again.
+- Plans, progress, and conclusions are scattered, so the agent keeps jumping between old and new directions.
+- You know the answer exists. It is just buried somewhere in an old chat.
 
 ## What Project Cairn does
 
@@ -35,13 +32,6 @@ A cairn is a trail marker built by earlier travelers. The name captures the goal
 ## Who it is for
 
 Project Cairn is useful when you run several AI-collaboration projects, switch between skill-compatible agents such as Claude Code and Codex, or need project knowledge to survive beyond one person's memory.
-
-It fits particularly well when:
-
-- the same class of problem appears in more than one project;
-- work spans many chats and conclusions tend to drift;
-- a team needs the reason and boundary behind a decision, not just the final choice;
-- validated work should become searchable through Obsidian, Notion, or Lark / Feishu.
 
 ## Install
 
