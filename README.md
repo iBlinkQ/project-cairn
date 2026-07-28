@@ -6,6 +6,8 @@
 
 [Open the interactive visual overview for the full two-side structure and nine-step flow](https://iblinkq.github.io/project-cairn/)
 
+[![Project Cairn interactive visual overview in English](docs/assets/screenshots/project-cairn-overview-en.png)](https://iblinkq.github.io/project-cairn/)
+
 ## Why hit the same problem twice?
 
 I once spent several rounds with an AI agent debugging a messaging bot that would occasionally miss incoming messages. We found the cause, tested the fix, and moved on.

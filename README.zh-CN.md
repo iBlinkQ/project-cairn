@@ -6,6 +6,8 @@
 
 [打开交互式可视化，查看完整的两侧结构和九步流程](https://iblinkq.github.io/project-cairn/)
 
+[![Project Cairn 中文交互式可视化概览](docs/assets/screenshots/project-cairn-overview-zh-CN.png)](https://iblinkq.github.io/project-cairn/)
+
 ## 同一个坑，为什么要在两个项目里踩两次？
 
 我曾经在一个项目里对接消息机器人。机器人偶尔收不到消息，我和 AI 来回排查了好几轮，终于找到原因并验证了解法。
