@@ -5,9 +5,9 @@ description: Standardize how an AI-collaboration project turns work into reusabl
 
 # Project Cairn
 
-Project Cairn turns project work into reusable knowledge. It has three layers: this **Skill** (the method), the project's **AGENTS.md** (always-read rules + navigation), and **`.cairn/config.yaml`** (machine-readable config, the source of truth for tools).
+Project Cairn gives AI-collaboration projects a durable way to keep and reuse what they learn while doing real work. The **Skill** supplies the method, **AGENTS.md** carries always-read project rules, and **`.cairn/config.yaml`** stores machine-readable configuration.
 
-This Skill is documentation-first. v0.1 provides instructions, templates, and references only — no CLI, MCP server, background hook, automatic provider write, or automatic history migration.
+This Skill is documentation-first. v0.1 provides instructions, templates, references, and provider adapters. It has no CLI, MCP server, background hook, chat-end trigger, automatic provider write, or automatic history migration. Routine maintenance happens during normal work because `AGENTS.md` carries the rules. Provider writes require human confirmation.
 
 ## Routing
 

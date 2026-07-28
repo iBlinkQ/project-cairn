@@ -4,121 +4,169 @@
 
 **Turn project work into reusable knowledge.**
 
-A cairn is a human-stacked pile of stones marking a trail for the next traveler — the name is the idea: leave what you learned somewhere the next project can find it.
+[Open the interactive visual overview for the full two-side structure and nine-step flow](https://iblinkq.github.io/project-cairn/)
 
-Project Cairn is an AI-agent skill for Claude Code, Codex, and other skill-compatible agents (OpenClaw, WorkBuddy, …). What it does is **turn experience into knowledge**: automatically distilling the **high-value experience you lived through** in an AI-collaboration project into reusable knowledge. Pitfall lessons, key decisions, exploration findings, sparks of insight — none of it disappears when the session ends; it carries over to the next project.
+## Why hit the same problem twice?
 
-> [Karpathy's](https://github.com/karpathy) LLM Wiki pattern distills **what you read**: it turns raw sources into a wiki. Project Cairn distills **what you did**: the pitfalls, the research, the hands-on work behind the result. Raw-source ingestion is an optional input; distilling lived experience is the main road.
+I once spent several rounds with an AI agent debugging a messaging bot that would occasionally miss incoming messages. We found the cause, tested the fix, and moved on.
 
-## The problem
+Then the same problem appeared in a second project. I knew I had solved it before, but the answer was buried in an old chat. I had to reopen the first project, find the conversation, and ask the agent to turn it into a Markdown note before the new project could use it.
 
-Most AI-collaboration projects accumulate project knowledge ad hoc: an `AGENTS.md` here, a `MEMORY.md` there, a pile of debug notes nobody re-reads. Three failure modes show up over and over:
+The project rules were just as improvised. One repository had `Memory.md`, another had `Plan.md`, and a third used `Learn.md`. Logs, plans, decisions, and lessons ended up in the same growing file. After a while, nobody could tell which paragraph still represented the current conclusion.
 
-1. **No naming standard.** The same kind of document is called `LEARN.md` in one project and `DEBUG_LOG.md` in the next, so nothing is discoverable across projects.
-2. **One file, two incompatible jobs.** A file like `MEMORY.md` ends up being both an append-only daily log *and* a topic-organized knowledge archive — two lifecycles that don't mix, so entries balloon and nothing stays current.
-3. **Knowledge doesn't flow.** Experience earned in one project stays trapped in that project. The next project starts from zero.
+Project Cairn starts there. A solved problem should not be trapped in yesterday's chat, and every new project should not need a newly invented knowledge system.
 
-Project Cairn's answer is a small set of documents, each with exactly one lifecycle, connected by explicit rules for when knowledge moves from a project into a reusable knowledge base — and never the other way around.
+## What Project Cairn does
 
-## How it works
+Project Cairn is an agent skill. During normal project work, it helps the agent keep validated pitfall lessons, key decisions, exploration findings, and sparks of insight inside the project. When something is genuinely reusable elsewhere, the agent can prepare it for a long-term knowledge base after you confirm it.
 
-A lesson's journey: work inside an agent → distilled by Project Cairn → reused across projects from the knowledge base.
+The files have distinct jobs:
 
-### Two layers
+- `AGENTS.md` holds the rules the agent reads whenever it enters the project.
+- `cairn/LOG.md` records what happened, with short summaries and pointers.
+- `cairn/ROADMAP.md` keeps the overall goal, plan, and current progress.
+- `cairn/<topic>.md` holds the current conclusion for one subject.
+- `cairn/Cited.md` points to external knowledge that actually shaped the project, without copying its body.
 
-| Layer | Contains | Lives in | Consumed by |
-|---|---|---|---|
-| **Project layer** | This project's rules, state, conclusions, cases | root `AGENTS.md` + `cairn/` | read automatically on entering the project |
-| **Knowledge-base layer** | Cross-project, reusable domain knowledge | a provider-owned store (Obsidian, Lark/Feishu wiki, Notion, …) | pulled on demand |
+A cairn is a trail marker built by earlier travelers. The name captures the goal: let the next project see where the previous one found a safe route.
 
-Knowledge moves **one way**: project → knowledge base, at the moment it's validated as reusable (not at some fixed project phase). A graduated note becomes the new "current truth" for that topic across projects; the project-side source stays the project's own local current truth and can keep being updated as work progresses — "one-way" means the knowledge-base note is never silently overwritten by a project-side edit, not that the source freezes. A substantive update to an already-graduated topic just means graduating again, refreshing the same knowledge-base note. Pulling knowledge back into a new project is a separate, explicit act — a pointer in `cairn/Cited.md`, never a copy of the body.
+## Who it is for
 
-```
-Project A experience ──graduate──▶ Knowledge base (single current truth) ──pull──▶ Project B's cairn/Cited.md
-```
+Project Cairn is useful when you run several AI-collaboration projects, switch between skill-compatible agents such as Claude Code and Codex, or need project knowledge to survive beyond one person's memory.
 
-### Two input channels
+It fits particularly well when:
 
-Conclusions reach the same set of `cairn/<topic>.md` notes through two parallel channels:
-
-- **Conversation channel** — a conclusion formed while working with the agent (a pitfall solved, a decision settled, a finding worth keeping) is written into its topic note the moment it forms; `LOG.md` keeps only a one-line pointer.
-- **Process-document channel** — process artifacts the project already produces (a [superpowers](https://github.com/obra/superpowers) spec or plan, a human review, a meeting discussion, an implementation retrospective) get distilled once their conclusion is stable. Only the conclusion moves: the process document stays where it is and is never relocated into `cairn/`.
-
-### Highlights
-
-- **Trigger-based, not template-heavy.** A new project only needs `AGENTS.md`. Everything else — topic notes, `ROADMAP.md`, `cairn/Reference/` (raw external material the project owns — not to be confused with this skill's own `references/` docs), `Cited.md` — is created only when a real signal shows up: a decision worth recording, a solved pitfall, a goal that outlives one session.
-- **One file, one job.** Rules live in `AGENTS.md`, history lives in `cairn/LOG.md`, conclusions live in `cairn/<topic>.md` — no more overloaded `MEMORY.md` trying to be a log and a knowledge base at once.
-- **A format both humans and agents can read.** Notes are plain markdown plus YAML frontmatter carrying at least a `type` field, following the minimal convention of Google's [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) (OKF). The bar is deliberately low: readable and writable by hand, identifiable by machine, exchangeable across tools and projects.
-- **Every graduated note carries its provenance.** `graduated_from` records which project and which source files it was distilled from, `contributors` who substantively shaped the knowledge, `graduated_by` who confirmed the graduation, and `authoring_mode` how the note itself was written — four independent questions, so any piece of knowledge can be traced back to where it came from.
-- **Engineering assets stay out.** Specs and schemas that code depends on live in the code tree, never in `cairn/` — only the knowledge *about* them (why they're shaped that way, what broke building them) is eligible to graduate.
-- **Branches don't lose knowledge.** Before an exploration branch is merged, abandoned, or rolled back, a lightweight review salvages anything worth keeping instead of letting it vanish with the branch.
-
-## Providers
-
-Project Cairn graduates knowledge into three verified platforms, each adapted to how that platform actually works rather than forced into one generic shape:
-
-- **Obsidian** — notes land as vault-relative files with an `INDEX.md`, linked with native WikiLinks.
-- **Lark / Feishu wiki** — notes become nodes in a wiki space's directory tree, written through the native resource API (the CLI shortcuts reject the coarse scope Project Cairn needs, so the adapter bypasses them).
-- **Notion** — notes become rows in a database that doubles as both container and index, with frontmatter mapped straight onto database properties.
-
-The set is pluggable, not hardcoded: a provider is anything that satisfies the behavioral contract in `references/provider-interface.md`, so adding a target means writing one adapter — the spec itself doesn't move.
-
-Each adapter owns its platform's link format (WikiLink, URL, page mention) and its own quirks (see `references/graduation.md`). Tool-backed providers ship a read-only preflight script (`scripts/lark-preflight.sh`, `scripts/notion-preflight.sh`) that checks install/auth/permissions before any write happens. These `scripts/*.sh` adapters are bash, verified on macOS/Linux — Windows users need WSL or Git Bash; the `scripts/*.py` scripts only need a Python 3 interpreter, no shell required.
+- the same class of problem appears in more than one project;
+- work spans many chats and conclusions tend to drift;
+- a team needs the reason and boundary behind a decision, not just the final choice;
+- validated work should become searchable through Obsidian, Notion, or Lark / Feishu.
 
 ## Install
 
-Project Cairn ships as an agent skill — one command adds it to your AI-collaboration projects.
-
-**Claude Code** (user-level, as an independent git-tracked skill):
+**Claude Code**, user-level installation:
 
 ```bash
 git clone https://github.com/iBlinkQ/project-cairn.git ~/.claude/skills/project-cairn
 ```
 
-**Codex** (user-level direct skill path):
+**Codex**, user-level direct skill path:
 
 ```bash
 git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-cairn
 ```
 
-**Other skill-compatible agents** — clone into whatever directory that agent reads skills from.
+For another skill-compatible agent, clone the repository into the directory where that agent loads skills. `SKILL.md` should sit directly at the root of `project-cairn/`, not inside another nested folder.
 
-Either way you end up with `SKILL.md` directly at the installed folder's root (`~/.claude/skills/project-cairn/SKILL.md`, not nested one level deeper) — that's the entry point every agent reads first. `agents/openai.yaml` carries Codex-specific metadata.
+Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3. There is no package-manager release yet.
 
-Prerequisites: `git`; `bash` for `scripts/*.sh` (macOS/Linux natively, Windows via WSL or Git Bash); Python 3 for `scripts/*.py` (no shell required). There's no package-manager release yet, so cloning is the install path.
+## Start in three steps
 
-## Quick start
+1. Ask the agent to "Initialize Project Cairn in this project." It will collect the project summary, git policy, and migration choice, then create the rules and configuration. Connecting a knowledge-base provider can be deferred until the first graduation.
+2. Keep working normally. During ordinary collaboration turns, the agent follows `AGENTS.md` to maintain progress and current conclusions. There is no separate recording service to run.
+3. When a validated lesson could help another project, ask the agent to prepare a graduation candidate. Nothing is written to the long-term knowledge base until you confirm the scope. Later projects search first and add a pointer to `cairn/Cited.md` only when a result actually influences the work.
 
-1. Open the project in Claude Code or Codex and just say something like *"Initialize Project Cairn in this project."* The skill interviews you — project summary, whether `cairn/` is git-tracked, one or more graduation providers, and a history-migration strategy — then freezes the answers into `.cairn/config.yaml`. Already set this up once before? It offers to reuse your usual config instead of asking again.
-2. Work normally. `AGENTS.md` is read as project rules on every turn, so day-to-day maintenance (logging progress, updating topic notes) just happens — no separate command needed.
-3. Before work whose conclusions would themselves be reusable, the agent checks instead of starting from zero — first the project's own `cairn/` topic notes, then the knowledge base's `INDEX.md`. Someone may already have hit this exact pitfall. Only a note that actually shaped the work earns a pointer in `cairn/Cited.md` — never a copy of the body. This is a reflex `AGENTS.md` carries, so no command is needed; you can also ask directly: *"Check the knowledge base for anything on X."*
-4. When something you learned would help a *different* project, say *"Graduate this to the knowledge base."* The agent proposes candidates, you confirm scope, and it writes into your configured provider(s) and updates the index.
-5. Periodically, or when something feels off, say *"Audit the project knowledge."* The agent checks for contradictions, stale conclusions, orphaned notes, missing graduation back-pointers, and assets that leaked into `cairn/`.
+## The two sides
+
+Project Cairn separates two lifecycles instead of putting every kind of information into one ever-growing file.
+
+| Side | What it keeps | Typical home | When it is read |
+|---|---|---|---|
+| **Project side** | Rules, progress, current conclusions, and local cases | root `AGENTS.md` and `cairn/` | while entering and advancing the project |
+| **Knowledge-base side** | Distilled knowledge that can be reused across projects | Obsidian, Notion, or Lark / Feishu wiki | when new work needs an earlier lesson |
+
+The project side keeps local facts and conclusions current. Once a lesson proves useful beyond that project, human-confirmed graduation distills it into the knowledge-base side. Each side remains authoritative for its own scope.
+
+## How a lesson reaches the next project
+
+Take the messaging-bot problem:
+
+1. Initialization writes the Cairn rules and configuration into the project.
+2. As the agent investigates, meaningful progress is recorded in `LOG.md`.
+3. Once the cause and fix are verified, the current conclusion moves into a topic note.
+4. Stable conclusions from specs, plans, reviews, or retrospectives may also be distilled. The process artifacts stay where they are.
+5. The agent notices that the lesson may be reusable and proposes it as a graduation candidate.
+6. After you approve, the agent removes project-specific noise, adds context and limits, records provenance, writes the note, and updates the provider's index.
+7. A later project searches the knowledge base before solving the problem again. If a note shapes the work, `Cited.md` records a pointer rather than a duplicate.
+
+The interactive overview expands this journey into T0 through T8, including roadmap maintenance, audit, and re-graduation: [explore the full flow](https://iblinkq.github.io/project-cairn/).
+
+## What it keeps
+
+Project Cairn does not stamp out a directory full of empty templates. Beyond the core initialization files, documents appear only when a real signal calls for them.
+
+| File | Responsibility |
+|---|---|
+| `AGENTS.md` | Rules and navigation |
+| `.cairn/config.yaml` | Machine-readable configuration |
+| `cairn/LOG.md` | Reverse-chronological history |
+| `cairn/ROADMAP.md` | Overall goal, plan, and current progress |
+| `cairn/<topic>.md` | Current truth for one topic |
+| `cairn/Reference/` | External source material owned by the project |
+| `cairn/Cited.md` | Pointers to knowledge that influenced the work |
+
+Schemas, configurations, and contracts consumed directly by code stay in the code tree. Cairn keeps the knowledge around them: why they look this way, what alternatives were tested, and what went wrong during implementation.
+
+Topic notes use Markdown and YAML frontmatter with at least a `type` field, following the minimal convention of Google's [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing). Project Cairn does not claim to implement the complete OKF bundle.
+
+Graduated notes carry provenance through `graduated_from`, `contributors`, `graduated_by`, and `authoring_mode`, so readers can trace a conclusion back to the people, project, and source material that produced it.
+
+## Automation boundaries
+
+- Project Cairn has no background hook and does not run after a chat ends.
+- Routine maintenance happens during normal work because the project's `AGENTS.md` carries the rules.
+- The agent may suggest a graduation candidate, but it cannot write to the long-term knowledge base without human confirmation.
+- Connecting Obsidian, Notion, or Lark / Feishu can be deferred until the first graduation.
+- Audit reports contradictions, stale conclusions, and omissions; it does not silently rewrite important decisions.
+
+Graduation writes from the project side to the knowledge-base side. Reuse works by searching first, then leaving a pointer in `Cited.md` when a note is actually used. It is explicit consumption, not background synchronization between two stores.
+
+## Verified knowledge bases
+
+Project Cairn has verified graduation paths for:
+
+- **Obsidian**, using vault-relative files, `INDEX.md`, and native WikiLinks.
+- **Notion**, using a database as both the container and index, with structured metadata mapped to properties.
+- **Lark / Feishu wiki**, using nodes in a knowledge-space tree with links that can be read back.
+
+Every provider follows the behavioral contract in `references/provider-interface.md` while keeping its platform's native link and index model. Before any write, the matching read-only preflight can check installation, authentication, and access:
+
+```text
+scripts/obsidian-preflight.sh
+scripts/notion-preflight.sh
+scripts/lark-preflight.sh
+```
+
+## Learn more
+
+Project Cairn complements adjacent tools instead of replacing them:
+
+| Tool or approach | Main job | Relationship to Cairn |
+|---|---|---|
+| [LLM Wiki](https://github.com/karpathy) | Organize source material you have read into a wiki | LLM Wiki focuses on source knowledge; Cairn focuses on knowledge learned through project work |
+| [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) | Make knowledge files exchangeable by people and machines | OKF concerns format; Cairn concerns formation, maintenance, graduation, and reuse |
+| Agent memory | Preserve an agent's preferences and working context | Memory supports agent continuity; Cairn supports project-knowledge continuity |
+| [superpowers](https://github.com/obra/superpowers) | Make delivery more reliable through specs, plans, tests, and review | superpowers manages the process; Cairn keeps the stable conclusions learned from it |
+
+An agent remembering something is not the same as a project learning it.
 
 ## Docs map
 
 | Reference | Use it for |
 |---|---|
-| `references/init.md` | Initializing or retrofitting Project Cairn in a project |
-| `references/maintenance.md` | Recording progress, updating `LOG.md`/`ROADMAP.md`/topic notes |
-| `references/graduation.md` | Distilling and writing validated knowledge into a knowledge base |
-| `references/provider-interface.md` | The behavioral contract every provider adapter script must satisfy |
-| `references/consume.md` | Pulling and citing external knowledge into a project |
-| `references/audit.md` | Finding drift, contradictions, or missing records |
-| `references/upgrade.md` | Bringing an initialized project up to the current skill spec, or checking how far it has drifted |
-| `references/frontmatter.md` | Frontmatter fields for project topic notes and knowledge-base notes |
-| `references/branch-closure.md` | Salvaging knowledge before closing an exploration branch |
-| `references/zh-glossary.md` | Fixed English↔Chinese terminology when writing project docs in Chinese |
-
-## Relationship to other tools
-
-- **[superpowers](https://github.com/obra/superpowers)-style process skills** (brainstorm → spec → plan → implement) operate at a **process layer** and write to a fixed `docs/superpowers/{specs,plans}/`. Project Cairn is a **knowledge/state layer** on top: a superpowers spec that reaches a stable conclusion is exactly the kind of input that gets a one-line `LOG.md` pointer and a distilled topic note. The two don't compete for the same files — Project Cairn renamed its roadmap file from `PLAN.md` to `ROADMAP.md` specifically to avoid colliding with superpowers' `plans/`.
-- **[OKF (Open Knowledge Format)](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing)** is a format convention for knowledge documents, not a competing workflow. Project Cairn organizes both project topic notes and knowledge-base notes along OKF's minimal convention — markdown plus YAML frontmatter, with at least a `type` naming the concept-object kind — so notes stay portable instead of locked into one tool's shape. Cairn aligns with that minimal convention rather than implementing a full OKF bundle.
-- **An agent's built-in memory** (e.g. Claude Code's `~/.claude` memory) stores facts about *you* — preferences, cross-project personal context. Project Cairn stores facts about *the project* — decisions, conclusions, cases — as files that live in the repo, are human-readable, survive a tool switch, and can be open-sourced. The two never overlap.
+| `references/init.md` | Initializing or retrofitting Project Cairn |
+| `references/maintenance.md` | Maintaining `LOG.md`, `ROADMAP.md`, and topic notes |
+| `references/graduation.md` | Judging, distilling, and writing reusable knowledge |
+| `references/provider-interface.md` | The behavioral contract for provider adapters |
+| `references/consume.md` | Searching, using, and citing external knowledge |
+| `references/audit.md` | Finding drift, contradictions, and missing records |
+| `references/upgrade.md` | Checking and upgrading an initialized project |
+| `references/frontmatter.md` | Fields for project notes and knowledge-base notes |
+| `references/branch-closure.md` | Salvaging knowledge before an exploration branch closes |
+| `references/zh-glossary.md` | Fixed terminology for Chinese project documentation |
 
 ## Contributing
 
-Issues and PRs welcome. Since v0.1 is documentation-first, most contributions are to `SKILL.md`, `references/*.md`, `assets/templates/*`, or the provider adapter scripts in `scripts/`. If you change behavior, explain why in the PR description so the reasoning isn't lost.
+Issues and pull requests are welcome. v0.1 is documentation-first, so most contributions belong in `SKILL.md`, `references/*.md`, `assets/templates/*`, or `scripts/`. If a change affects behavior, explain the reason and impact in the pull request.
 
 ## License
 
