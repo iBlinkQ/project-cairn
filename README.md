@@ -61,6 +61,22 @@ For another skill-compatible agent, clone the repository into the directory wher
 
 Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3. There is no package-manager release yet.
 
+### Windows
+
+Windows users can run Project Cairn scripts through WSL or Git Bash. WSL is recommended. Check the local environment first:
+
+```powershell
+pwsh ./scripts/check-windows-env.ps1
+```
+
+Run an existing Bash script through the PowerShell wrapper:
+
+```powershell
+pwsh ./scripts/run-cairn-script.ps1 notion-preflight --db "<database_id>"
+```
+
+The wrapper does not reimplement or replace the Bash scripts. It forwards calls to the existing `.sh` scripts through WSL first, then Git Bash if WSL is unavailable.
+
 ## Start in three steps
 
 1. Ask the agent to "Initialize Project Cairn in this project." It will collect the project summary, git policy, and migration choice, then create the rules and configuration. Connecting a knowledge-base provider can be deferred until the first graduation.
