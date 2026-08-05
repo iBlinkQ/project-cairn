@@ -54,4 +54,5 @@
 ## Knowledge distillation rules
 
 - After every substantive step forward, add one entry to the top of `cairn/LOG.md` (summary + pointer); let conclusions settle into the `cairn/` topic notes.
+- **Completion reply gate:** before any completion claim—including but not limited to work being complete or implemented, finalized, updated, synchronized, verified or tests passing; a problem being fixed or resolved; a deliverable being ready to use; a statement that work has ended; and semantically equivalent wording—run the Cairn checkpoint in `references/maintenance.md`; update only the records its trigger matrix requires, verify them, then reply. An explicit read-only / no-edit request forbids Cairn writes.
 - Cross-project reusable experience gets distilled into {{GRADUATION_TARGET}} via the graduation mechanism.
