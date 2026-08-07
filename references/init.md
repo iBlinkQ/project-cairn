@@ -5,7 +5,7 @@ Initialize or retrofit Project Cairn in a project. This is an interactive setup 
 ## Decisions to collect
 
 1. Project name and one-line summary.
-2. Whether `cairn/` is committed, ignored, or privately synced (`git_policy`: `track` | `ignore` | `private_sync`). If `cairn/Reference/` (see decision list in `assets/templates/config.yaml`) is expected to hold externally-owned or sensitive raw material — a client's PDF, a call transcript — offer a separate, optionally more conservative `reference_git_policy` for it alone; omitting it means Reference/ simply inherits `git_policy`.
+2. Whether `cairn/` is committed, ignored, or privately synced (`git_policy`: `track` | `ignore` | `private_sync`). **Per-project — always ask, never inherit** (see "Per-project decisions" below). If `cairn/Reference/` (see decision list in `assets/templates/config.yaml`) is expected to hold externally-owned or sensitive raw material — a client's PDF, a call transcript — offer a separate, optionally more conservative `reference_git_policy` for it alone; omitting it means Reference/ simply inherits `git_policy`. The resolved answer is not just recorded — it is enforced via `.gitignore` (see "Enforcing git_policy" below).
 3. Graduation provider(s): collect zero or more targets (e.g. Obsidian, Lark/Feishu CLI, Notion). "Not yet" is a first-class answer — the user may defer connecting any knowledge base until the first graduation (see "Deferred graduation provider" below).
 4. For each provider, collect target and index location. Do not hardcode concrete Obsidian vault paths or directory names; those are user/project choices.
 5. Historical knowledge strategy (`migration_mode`). Default: `start_fresh`.
@@ -18,16 +18,43 @@ Resolve each decision through the cascading defaults below instead of re-asking 
 Config resolves through three layers, highest wins (same model as git/npm/eslint):
 
 1. **Project-level** — `.cairn/config.yaml` in the project. Overrides everything.
-2. **User-level** — `~/.config/cairn/config.yaml`, shaped like `assets/templates/user-config.yaml`. Personal defaults: a `providers` directory keyed by provider type (look up by name, e.g. `providers.notion` — it is a dict, not a list to scan) holding the targets the user normally graduates to, plus their usual `git_policy` / `migration_mode` / `language` under `defaults`.
+2. **User-level** — `~/.config/cairn/config.yaml`, shaped like `assets/templates/user-config.yaml`. Personal defaults: a `providers` directory keyed by provider type (look up by name, e.g. `providers.notion` — it is a dict, not a list to scan) holding the targets the user normally graduates to, plus their usual `migration_mode` / `language` under `defaults`. `git_policy` / `reference_git_policy` are **excluded by design** — see "Per-project decisions" below.
 3. **Built-in** — the template defaults shipped in `assets/templates/config.yaml` (`knowledge_dir: cairn`, `migration_mode: start_fresh`, `language: en`).
 
 Credentials (tokens, vault secrets, Lark app secrets) never go in either config file. Keep them in `.env` or a secret store and reference them by name; they are never committed.
 
 ### First run vs. later runs
 
-- **First run (no user-level config):** ask the full question set above. After collecting answers, offer to save them as user-level defaults at `~/.config/cairn/config.yaml`, so the next project does not repeat the interview.
-- **Later runs (user-level config exists):** show the resolved defaults and offer one-key reuse, phrased in the project's resolved `language` (e.g. in English: "Reuse usual config? [Enter]"). Only re-ask the decisions the user wants to change.
-- **Non-interactive mode:** when a user-level config exists, apply the resolved values silently without prompting (for scripted or unattended setup).
+- **First run (no user-level config):** ask the full question set above. After collecting answers, offer to save them as user-level defaults at `~/.config/cairn/config.yaml` — **excluding the per-project decisions below**, which are never written there.
+- **Later runs (user-level config exists):** show the resolved defaults and offer one-key reuse, phrased in the project's resolved `language` (e.g. in English: "Reuse usual config? [Enter]"). Only re-ask the decisions the user wants to change. The reuse panel covers `migration_mode`, `language`, and providers only; after the user accepts it, **still ask the per-project decisions separately** — one extra keystroke, not a re-interview.
+- **Non-interactive mode:** when a user-level config exists, apply the resolved values silently without prompting (for scripted or unattended setup). Per-project decisions have no resolved value to apply — see their fallback rule below.
+
+### Per-project decisions (never inherited)
+
+`git_policy` and `reference_git_policy` are collected fresh in every project. They do not appear in `~/.config/cairn/config.yaml`, they are absent from the one-key reuse panel, and no cascading layer supplies them.
+
+The rule that puts a decision in this class: **is it a property of this repository, or a habit of this person?** `language` (I write docs in Chinese), `migration_mode` (I start fresh), and providers (my vault lives here) travel with the user and are worth reusing. Whether `cairn/` belongs in version control is a property of the repo — public OSS, client-private work, a throwaway sandbox — so the previous project's answer carries no predictive value for the next one.
+
+The error directions are also not symmetric, which is why this class gets no low-friction "same as last time" path:
+
+- A `cairn/` that should have stayed private, silently committed and pushed to a public remote → **irreversible**. Once pushed it is mirrored, indexed, and cached; deleting it later does not recall it.
+- A `cairn/` that should have been committed but was ignored → **recoverable**. The files are still in the working tree; switch to `track` and commit.
+
+**Non-interactive fallback:** when no human can answer, resolve `git_policy` to `ignore` and state it explicitly in the output — e.g. "git_policy was not asked (non-interactive); defaulted to the conservative `ignore`. Set it to `track` in `.cairn/config.yaml` once confirmed." This is the only place a value lands without confirmation, and it is pinned to the recoverable side.
+
+### Enforcing `git_policy`
+
+`git_policy` is not just a recorded intention: after writing `.cairn/config.yaml`, init makes the project's `.gitignore` match the chosen policy, so `git add .` cannot quietly contradict it.
+
+| Resolved policy | Action |
+|---|---|
+| `track` | Write no ignore rule. If an existing rule already ignores the knowledge dir, surface the conflict and let the user decide — never silently remove or override it. |
+| `ignore` / `private_sync` | Append `<knowledge_dir>/` to the project's `.gitignore`, preceded by a comment naming `cairn init` and the chosen policy as the source of the rule. |
+| `reference_git_policy` stricter than `git_policy` | Append `<knowledge_dir>/Reference/` only. |
+
+- **Idempotent**: skip the append when an equivalent rule already covers the path; never write duplicates on re-init or upgrade.
+- **The project's `.gitignore`, not `.git/info/exclude`**: the rule travels with the repo, so collaborators who clone it behave the same way and can review the rule. The cost — the directory name is visible in a public repo — is accepted as negligible against a collaborator accidentally committing an ignored `cairn/`.
+- **`.cairn/config.yaml` is never ignored**, whatever the policy. It is configuration, not knowledge, and it must stay portable for collaborators (see "What lands in the project"). Credentials never live in it — they stay in `.env` and are referenced by name.
 
 ### Documentation language
 
@@ -37,7 +64,7 @@ Decision #6 resolves through the same three layers above. One extra rule governs
 2. **Conversation language** — otherwise, suggest the language of the user's most recent message.
 3. **English** — otherwise (a very first short instruction, mixed-language input, or non-interactive/scripted init), fall back to English.
 
-This is a suggested default, not a silent decision: the user still confirms or overrides it like any other init question. Once confirmed, `language` is saved into `~/.config/cairn/config.yaml` exactly like `git_policy` / `migration_mode`; the next `cairn init` — on either agent, in this project or a new one — reuses it via the "later runs" one-key flow above instead of re-detecting or re-asking.
+This is a suggested default, not a silent decision: the user still confirms or overrides it like any other init question. Once confirmed, `language` is saved into `~/.config/cairn/config.yaml` exactly like `migration_mode`; the next `cairn init` — on either agent, in this project or a new one — reuses it via the "later runs" one-key flow above instead of re-detecting or re-asking.
 
 When the resolved `language` is not English, write `AGENTS.md` / `cairn/LOG.md` / `cairn/ROADMAP.md` / topic notes in that language: translate prose and section headings, but keep `{{PLACEHOLDER}}` tokens, frontmatter keys, and file names exactly as the English templates in `assets/templates/` define them, and preserve the same heading sequence. For Chinese, match established terms — including heading labels — using `references/zh-glossary.md` so wording stays consistent across independently-initialized projects.
 
@@ -126,6 +153,7 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 - `.cairn/config.yaml` — from `assets/templates/config.yaml`, with the collected values frozen in. `{{SKILL_SPEC_DATE}}` is stamped automatically from `references/upgrade.md`'s "Current spec date" — it is not a user decision and is never asked; it anchors later instance-drift checks (see `upgrade.md`).
 - `cairn/LOG.md` — from `assets/templates/LOG.md`.
 - `cairn/ROADMAP.md` — optional; only when the project has goals that outlast one session.
+- `.gitignore` — only when the resolved `git_policy` / `reference_git_policy` calls for a rule; created if absent, appended to idempotently otherwise (see "Enforcing `git_policy`").
 
 Do not pre-create empty topic notes, `Reference/`, or `Cited.md`. Those are created on first trigger.
 

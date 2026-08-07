@@ -1,6 +1,12 @@
 version: 0.1
 defaults:
-  git_policy: "{{GIT_POLICY}}"
+  # NOTE: git_policy / reference_git_policy deliberately do NOT belong here.
+  # They are properties of a repository (public OSS? client-private? throwaway
+  # sandbox?), not habits of a person, so the previous project's answer has no
+  # predictive value for the next one — and the two error directions are not
+  # symmetric: silently committing a cairn/ that should have stayed private is
+  # irreversible, while a missed commit is not. Every init asks for them.
+  # See references/init.md → "Per-project decisions (never inherited)".
   migration_mode: "{{MIGRATION_MODE}}"
   language: "{{DOC_LANGUAGE}}"
 providers:
