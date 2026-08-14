@@ -17,7 +17,7 @@
 
 ## Project Cairn 会做什么
 
-Project Cairn 是一个 Agent Skill。它让 Agent 在正常推进项目时，把已经验证的踩坑经验、关键决策、探索成果和灵感洞见留在项目里。真正值得跨项目复用的内容，再由你确认后进入长期知识库。
+Project Cairn 是一个 Agent Skill。它让 Agent 在正常推进项目时，把已经验证的踩坑经验、关键决策、探索成果和灵感洞见留在项目里。真正值得跨项目复用的内容，再由你确认后，以结构化笔记的形式存入你的第二大脑。
 
 ![Project Cairn 与 AI Agent、知识库及相关生态的关系图](docs/assets/screenshots/project-cairn-ecosystem-zh-CN.png)
 
@@ -59,7 +59,7 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-
 
 其他兼容 Skill 的 Agent，把仓库 clone 到该 Agent 读取 Skill 的目录即可。安装后，`SKILL.md` 应直接位于 `project-cairn/` 根目录，不要再多嵌套一层。
 
-前置依赖是 `git`。`scripts/*.sh` 需要 `bash`，已在 macOS 和 Linux 上验证，Windows 需要 WSL 或 Git Bash；`scripts/*.py` 需要 Python 3。目前没有包管理器版本。
+前置依赖是 `git`。`scripts/*.sh` 需要 `bash`，已在 macOS 和 Linux 上验证，Windows 需要 WSL 或 Git Bash；`scripts/*.py` 需要 Python 3，其中 `notion-graduate-batch.py` 还需要 PyYAML。目前没有包管理器版本。
 
 ## 三步开始使用
 

@@ -59,7 +59,7 @@ See the [official WorkBuddy skill guide](https://www.workbuddy.ai/docs/workbuddy
 
 For another skill-compatible agent, clone the repository into the directory where that agent loads skills. `SKILL.md` should sit directly at the root of `project-cairn/`, not inside another nested folder.
 
-Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3. There is no package-manager release yet.
+Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3; `notion-graduate-batch.py` additionally requires PyYAML. There is no package-manager release yet.
 
 ## Start in three steps
 

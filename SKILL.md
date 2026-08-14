@@ -23,11 +23,11 @@ Load exactly the reference you need:
 - `references/branch-closure.md` — review, close, abandon, or roll back an exploration branch and salvage its `cairn/` knowledge before it disappears.
 - `references/zh-glossary.md` — writing project docs in Chinese (or resolving what a Chinese term should be); fixed English↔Chinese terminology mapping for Project Cairn's own vocabulary.
 
-The description frontmatter describes triggering situations, not the workflow in detail.
+Frontmatter describes triggers, not workflow.
 
 ## Templates
 
-`assets/templates/` holds templates used by `init` and by later triggered actions: `AGENTS.md`, `CLAUDE.md`, `config.yaml`, `LOG.md`, `ROADMAP.md`, `topic.md`, `Cited.md`. `init` only scaffolds the core set (`AGENTS.md`, `CLAUDE.md`, `.cairn/config.yaml`, `cairn/LOG.md`, and optionally `cairn/ROADMAP.md`); `topic.md`, `Cited.md`, and `Reference/` are created on first trigger, not pre-stamped. Templates use `{{PLACEHOLDER}}` tokens; never hardcode a specific provider or knowledge path into a template.
+`assets/templates/` contains `AGENTS.md`, `CLAUDE.md`, `config.yaml`, `user-config.yaml`, `LOG.md`, `ROADMAP.md`, `topic.md`, and `Cited.md`. `init` scaffolds `AGENTS.md`, `CLAUDE.md`, `.cairn/config.yaml`, `cairn/LOG.md`, and optional `cairn/ROADMAP.md`; it can seed optional `~/.config/cairn/config.yaml` from `user-config.yaml`. `topic.md`, `Cited.md`, and `Reference/` are trigger-created. Templates use `{{PLACEHOLDER}}` tokens; never hardcode a provider or knowledge path.
 
 ## Boundaries
 
@@ -36,4 +36,4 @@ The description frontmatter describes triggering situations, not the workflow in
 - Audit is the safety net for missed records.
 - Graduation is candidate detection plus human confirmation.
 - Historical migration is optional and separate from init.
-- Provider adapter scripts under `scripts/*.sh` are bash — verified on macOS/Linux; Windows users need WSL or Git Bash. `scripts/*.py` scripts only need a Python 3 interpreter, no shell required.
+- `scripts/*.sh` use bash (verified on macOS/Linux; Windows needs WSL or Git Bash). `scripts/*.py` use Python 3 without a shell; `notion-graduate-batch.py` also needs PyYAML.
