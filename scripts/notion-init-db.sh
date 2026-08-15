@@ -7,7 +7,8 @@
 # the notes) — there is no separate INDEX page.
 #
 # Direct REST via curl (honors HTTPS_PROXY) + retry; pinned Notion-Version.
-# The parent page must be shared with the integration first.
+# POST /databases carries an Idempotency-Key so a retried create cannot
+# duplicate the database. The parent page must be shared with the integration.
 #
 # macOS Bash 3.2 compatible. Requires: curl, jq. Token in env NOTION_API_TOKEN.
 #
@@ -53,25 +54,27 @@ jq -nc --arg parent "$PARENT" --arg title "$TITLE" '{
     "graduated_at": {date:{}},
     "authoring_mode": {select:{options:[{name:"ai_generated"},{name:"human_written"},{name:"ai_assisted"}]}},
     "contributors": {multi_select:{}},
-    "graduated_by": {multi_select:{}},
-    "source": {url:{}}
+    "graduated_by": {multi_select:{}}
   }
 }' > "$PAYLOAD_FILE"
 
+IDEM_KEY="cairn-$(date +%s)-$$-${RANDOM}"
+
 if [ "$DRY_RUN" -eq 1 ]; then
-  echo "DRY-RUN: POST https://api.notion.com/v1/databases (Notion-Version $NV)" >&2
+  echo "DRY-RUN: POST https://api.notion.com/v1/databases (Idempotency-Key; Notion-Version $NV)" >&2
   echo "  parent page: $PARENT  title: $TITLE" >&2
   echo "  properties: $(jq -c '.properties | keys' "$PAYLOAD_FILE")" >&2
   jq -nc '{database_id:"<dry-run>", url:"<dry-run>"}'
   exit 0
 fi
 
-# curl+retry POST
+# curl+retry POST (the Idempotency-Key stays constant across retries)
 attempt=0; max=8; RESP=""
 while [ "$attempt" -lt "$max" ]; do
   attempt=$((attempt + 1))
   RESP="$(curl -sS -X POST "https://api.notion.com/v1/databases" \
     -H "Authorization: Bearer $NOTION_API_TOKEN" -H "Notion-Version: $NV" \
+    -H "Idempotency-Key: $IDEM_KEY" \
     -H "Content-Type: application/json" --data @"$PAYLOAD_FILE" 2>/dev/null)"; rc=$?
   [ "$rc" -eq 0 ] && [ -n "$RESP" ] && break
   sleep "$attempt"

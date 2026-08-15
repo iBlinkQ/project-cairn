@@ -102,7 +102,10 @@ DB_READ=true
 
 # 4) required property columns present?
 # Missing names stay a separate status from incompatible existing columns.
-HAVE="$(printf '%s' "$BODY" | jq -r '.properties | keys[]' 2>/dev/null || true)"
+# Git Bash/Windows note: jqlang's mingw jq.exe emits CRLF, and command
+# substitution keeps CR inside multi-line captures — strip it so the
+# full-line case matching below works on Windows.
+HAVE="$(printf '%s' "$BODY" | jq -r '.properties | keys[]' 2>/dev/null | tr -d '\r' || true)"
 for spec in $REQUIRED_PROP_SPECS; do
   p="${spec%%:*}"
   case "

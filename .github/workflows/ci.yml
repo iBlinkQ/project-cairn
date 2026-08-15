@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          sudo apt-get update && sudo apt-get install -y jq
+      - name: Python unit tests
+        run: python -m pytest tests -q
+      - name: Bash smoke tests (dry-run)
+        run: bash tests/smoke_bash.sh
+      - name: Syntax check bash scripts
+        run: for f in scripts/*.sh; do bash -n "$f" || exit 1; done

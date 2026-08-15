@@ -13,6 +13,14 @@ mention injection into rich_text — awkward in bash/jq. Uses urllib (honors
 HTTPS_PROXY) + per-request retry to ride out SSL EOF flakiness, same transport
 lesson as notion-graduate.sh. `ntn` CLI is NOT used (proxy-unreliable).
 
+Notion API request limits are handled (see references/graduation/notion.md):
+  - body blocks are appended in chunks of at most 100 blocks per request;
+  - rich_text segments are split at 2000 characters;
+  - update mode appends the replacement body BEFORE archiving the old blocks,
+    so a mid-flight failure degrades to a duplicated body, never a lost one;
+  - page creation sends an Idempotency-Key, so a retry after a client-side
+    SSL EOF cannot create a duplicate page.
+
 Title of each note = its filename stem (matches how wikilinks reference it).
 Frontmatter maps to DB properties. Notion-Version pinned to 2022-06-28.
 
@@ -23,20 +31,25 @@ Usage:
       [--src-dir DIR | FILE.md ...] [--repo-prefix PATH] [--dry-run]
 Output (stdout): JSON { "<title>": "<page id>", ... }
 """
-import os, re, sys, glob, json, time, ssl, argparse, urllib.request, urllib.error
+import os, re, sys, glob, json, time, ssl, uuid, argparse, urllib.request, urllib.error
 
 NV = os.environ.get("NOTION_API_VERSION", "2022-06-28")
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
+TEXT_LIMIT = 2000   # Notion rich_text object hard cap, in characters
+BLOCK_CHUNK = 100   # max blocks per single append request
 
 
-def api(method, path, body=None, tries=8, token=None):
+def api(method, path, body=None, tries=8, token=None, idem=None):
     url = f"https://api.notion.com/v1/{path}"
     data = json.dumps(body).encode() if body is not None else None
+    headers = {
+        "Authorization": f"Bearer {token}", "Notion-Version": NV,
+        "Content-Type": "application/json"}
+    if idem:
+        headers["Idempotency-Key"] = idem
     last = None
     for k in range(tries):
-        req = urllib.request.Request(url, data=data, method=method, headers={
-            "Authorization": f"Bearer {token}", "Notion-Version": NV,
-            "Content-Type": "application/json"})
+        req = urllib.request.Request(url, data=data, method=method, headers=headers)
         try:
             return json.load(urllib.request.urlopen(req, timeout=30))
         except urllib.error.HTTPError as e:
@@ -49,7 +62,8 @@ def api(method, path, body=None, tries=8, token=None):
 def parse_note(fp):
     import yaml
     raw = open(fp, encoding="utf-8").read()
-    m = re.match(r"^---\n(.*?)\n---\n(.*)$", raw, re.S)
+    # \r?\n: Windows CRLF frontmatter delimiters must match too.
+    m = re.match(r"^---\r?\n(.*?)\r?\n---\r?\n(.*)$", raw, re.S)
     if not m:
         raise SystemExit(f"no frontmatter: {fp}")
     return os.path.splitext(os.path.basename(fp))[0], yaml.safe_load(m.group(1)), m.group(2)
@@ -60,6 +74,9 @@ def gfrom_text(gf, repo_prefix):
         return gf
     out = []
     for e in gf or []:
+        if not isinstance(e, dict):
+            out.append(str(e))
+            continue
         p = e.get("path", "")
         if repo_prefix and p.startswith(repo_prefix):
             p = p[len(repo_prefix):]
@@ -67,19 +84,30 @@ def gfrom_text(gf, repo_prefix):
     return "\n".join(out)
 
 
+def _text_items(text, bold=False):
+    """Split text into <=TEXT_LIMIT-char rich_text text items."""
+    out = []
+    for i in range(0, len(text), TEXT_LIMIT):
+        item = {"type": "text", "text": {"content": text[i:i + TEXT_LIMIT]}}
+        if bold:
+            item["annotations"] = {"bold": True}
+        out.append(item)
+    return out
+
+
 def rich(text, idmap):
     out, pos = [], 0
     for m in WIKILINK.finditer(text):
         if m.start() > pos:
-            out.append({"type": "text", "text": {"content": text[pos:m.start()]}})
+            out.extend(_text_items(text[pos:m.start()]))
         t = m.group(1)
         if t in idmap:
             out.append({"type": "mention", "mention": {"type": "page", "page": {"id": idmap[t]}}})
         else:
-            out.append({"type": "text", "text": {"content": t}, "annotations": {"bold": True}})
+            out.extend(_text_items(t, bold=True))
         pos = m.end()
     if pos < len(text):
-        out.append({"type": "text", "text": {"content": text[pos:]}})
+        out.extend(_text_items(text[pos:]))
     return out or [{"type": "text", "text": {"content": ""}}]
 
 
@@ -96,7 +124,8 @@ def md_to_blocks(body, idmap):
                 buf.append(lines[i]); i += 1
             i += 1
             blocks.append({"type": "code", "code": {
-                "rich_text": [{"type": "text", "text": {"content": "\n".join(buf)}}], "language": lang}})
+                "rich_text": _text_items("\n".join(buf)) or [{"type": "text", "text": {"content": ""}}],
+                "language": lang}})
             continue
         if ln.startswith("# "):
             i += 1; continue
@@ -121,6 +150,12 @@ def md_to_blocks(body, idmap):
     return blocks
 
 
+def _as_list(v):
+    if v is None:
+        return []
+    return [v] if isinstance(v, str) else list(v)
+
+
 def props(title, fm, grad_at, repo_prefix, idmap):
     p = {"Name": {"title": [{"type": "text", "text": {"content": title}}]}}
     if grad_at:
@@ -128,9 +163,9 @@ def props(title, fm, grad_at, repo_prefix, idmap):
     if fm.get("type"):
         p["type"] = {"select": {"name": fm["type"]}}
     if fm.get("contains"):
-        p["contains"] = {"multi_select": [{"name": c} for c in fm["contains"]]}
+        p["contains"] = {"multi_select": [{"name": c} for c in _as_list(fm["contains"])]}
     if fm.get("tags"):
-        p["tags"] = {"multi_select": [{"name": t} for t in fm["tags"]]}
+        p["tags"] = {"multi_select": [{"name": t} for t in _as_list(fm["tags"])]}
     if fm.get("authoring_mode"):
         p["authoring_mode"] = {"select": {"name": fm["authoring_mode"]}}
     for key in ("contributors", "graduated_by"):
@@ -145,8 +180,19 @@ def props(title, fm, grad_at, repo_prefix, idmap):
     return p
 
 
+def chunks(seq, size=BLOCK_CHUNK):
+    for i in range(0, len(seq), size):
+        yield seq[i:i + size]
+
+
 def replace_body(page_id, blocks, token):
-    """Archive every current top-level child, then write supplied current truth."""
+    """Replace the page body with the supplied current truth.
+
+    Order matters: the replacement blocks are appended BEFORE the old blocks
+    are archived, so a mid-flight failure degrades to a duplicated body, never
+    an empty page. Appends are chunked to respect Notion's 100-blocks-per-
+    request limit.
+    """
     cursor = None
     child_ids = []
     while True:
@@ -160,14 +206,14 @@ def replace_body(page_id, blocks, token):
         if not children.get("has_more"):
             break
         cursor = children.get("next_cursor")
+    for part in chunks(list(blocks)):
+        written = api("PATCH", f"blocks/{page_id}/children", {"children": part}, token=token)
+        if "__err__" in written:
+            raise SystemExit(f"replace body failed {page_id}: {written}")
     for child_id in child_ids:
         removed = api("DELETE", f"blocks/{child_id}", token=token)
         if "__err__" in removed:
             raise SystemExit(f"delete block failed {child_id}: {removed}")
-    if blocks:
-        written = api("PATCH", f"blocks/{page_id}/children", {"children": blocks}, token=token)
-        if "__err__" in written:
-            raise SystemExit(f"replace body failed {page_id}: {written}")
 
 
 def main():
@@ -195,7 +241,6 @@ def main():
 
     if a.dry_run:
         for title, fm, body in notes:
-            idmap_preview = {t for t, _, _ in notes}
             nblocks = len(md_to_blocks(body, {}))
             print(f"DRY-RUN would graduate: {title}  ({nblocks} blocks, props from frontmatter)", file=sys.stderr)
         print(json.dumps({t: "<dry-run>" for t, _, _ in notes}, ensure_ascii=False))
@@ -232,7 +277,7 @@ def main():
             continue
         res = api("POST", "pages",
                   {"parent": {"database_id": a.db}, "properties": props(title, fm, a.graduated_at, a.repo_prefix, {})},
-                  token=token)
+                  token=token, idem=str(uuid.uuid4()))
         if "__err__" in res:
             raise SystemExit(f"create failed {title}: {res}")
         idmap[title] = res["id"]
