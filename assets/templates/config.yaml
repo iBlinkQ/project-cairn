@@ -12,6 +12,9 @@ cairn:
   # changelog (see references/upgrade.md).
   skill_spec_date: "{{SKILL_SPEC_DATE}}"
   # git_policy: track | ignore | private_sync
+  # ignore / private_sync keep the whole Cairn footprint out of the repo —
+  # the knowledge dir, .cairn/, and any AGENTS.md / CLAUDE.md init created —
+  # not just the knowledge dir (see references/init.md, "Enforcing git_policy").
   git_policy: "{{GIT_POLICY}}"
   # reference_git_policy (optional): same enum as git_policy, scoped only to
   # cairn/Reference/ (external raw input the project owns but didn't author —

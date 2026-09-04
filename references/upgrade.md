@@ -2,7 +2,7 @@
 
 Bring an already-initialized project instance up to the current skill spec, or measure how far it has drifted. `cairn init` freezes the spec of its day into the project (AGENTS.md wording, config shape, LOG conventions); the skill keeps evolving, and nothing updates the frozen copy automatically. This reference is both the detection checklist and the execution manual for closing that gap.
 
-**Current spec date: 2026-08-07**
+**Current spec date: 2026-09-04**
 
 ## Two layers of "upgrade" — keep them apart
 
@@ -96,3 +96,10 @@ Entry format — four fixed fields:
 - **Detect**: two independent checks. ① `~/.config/cairn/config.yaml` has `git_policy` (or `reference_git_policy`) under `defaults` = drifted: the field used to be a cascading default, so any project initialized after it was saved may have inherited an answer that was never asked. ② The project's `.cairn/config.yaml` says `git_policy: ignore` or `private_sync` but the project's `.gitignore` has no rule covering `knowledge_dir` = drifted: the stated policy has no effect and `git add .` will commit the knowledge dir anyway. (Same check for `reference_git_policy` against `<knowledge_dir>/Reference/`.)
 - **Fix**: ① delete the `git_policy` / `reference_git_policy` keys from the user-level `defaults` block; leave the rest of the file untouched. ② Ask the user once what this specific repository actually wants — do not assume the recorded value was ever a real answer — then either add the missing `.gitignore` rule or correct `git_policy` in `.cairn/config.yaml` to match reality. An instance that inherited its value silently has no other point at which it gets corrected.
 - **Safety**: `confirm` (touches a file outside the project and changes what future commits contain).
+
+### 2026-09-04 — `git_policy: ignore` covers the whole Cairn footprint, under a neutral comment
+
+- **Affects**: the project's `.gitignore` (and, through it, what the repo's remote already carries).
+- **Detect**: in a project whose `.cairn/config.yaml` says `git_policy: ignore` or `private_sync`, run `git ls-files -- .cairn AGENTS.md CLAUDE.md '<knowledge_dir>'`. Any path listed = drifted: the policy says Cairn stays out of this repo, yet these are committed — and if the remote is public, already published. Separately drifted: the ignore block's comment names `cairn init`, the policy, or Cairn at all.
+- **Fix**: extend the ignore block to cover `<knowledge_dir>/`, `.cairn/`, and `AGENTS.md` / `CLAUDE.md` where Cairn authored them, and replace the block's comment with the neutral `# Local working files, not part of the project`. An ignore rule does nothing for a path git already tracks: list those paths for the user with `git rm --cached <path>` as the remedy and let them decide — untracking is theirs to approve, and where the repo was already pushed, say plainly that removing a file from HEAD does not remove it from history or from anything that already mirrored it.
+- **Safety**: `confirm` (changes what future commits contain, and may mean accepting or rewriting published history).

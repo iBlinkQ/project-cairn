@@ -46,15 +46,19 @@ The error directions are also not symmetric, which is why this class gets no low
 
 `git_policy` is not just a recorded intention: after writing `.cairn/config.yaml`, init makes the project's `.gitignore` match the chosen policy, so `git add .` cannot quietly contradict it.
 
+**What the policy covers.** `ignore` / `private_sync` mean "this repository's history carries no trace of Cairn" — not "the knowledge dir alone stays out". The rule therefore spans every path init lands: `<knowledge_dir>/`, `.cairn/`, and — only where init created them — `AGENTS.md` and `CLAUDE.md`. A private `cairn/` beside a committed `AGENTS.md` leaks strictly more than the directory name it was hiding: the project's one-line positioning, the graduation provider, the knowledge dir, the entire Cairn section. `.cairn/config.yaml` carries the provider target and index path for the same reason.
+
 | Resolved policy | Action |
 |---|---|
-| `track` | Write no ignore rule. If an existing rule already ignores the knowledge dir, surface the conflict and let the user decide — never silently remove or override it. |
-| `ignore` / `private_sync` | Append `<knowledge_dir>/` to the project's `.gitignore`, preceded by a comment naming `cairn init` and the chosen policy as the source of the rule. |
+| `track` | Write no ignore rule. If an existing rule already ignores one of those paths, surface the conflict and let the user decide — never silently remove or override it. |
+| `ignore` / `private_sync` | Append one block to the project's `.gitignore` covering `<knowledge_dir>/`, `.cairn/`, and whichever of `AGENTS.md` / `CLAUDE.md` this init created. |
 | `reference_git_policy` stricter than `git_policy` | Append `<knowledge_dir>/Reference/` only. |
 
-- **Idempotent**: skip the append when an equivalent rule already covers the path; never write duplicates on re-init or upgrade.
-- **The project's `.gitignore`, not `.git/info/exclude`**: the rule travels with the repo, so collaborators who clone it behave the same way and can review the rule. The cost — the directory name is visible in a public repo — is accepted as negligible against a collaborator accidentally committing an ignored `cairn/`.
-- **`.cairn/config.yaml` is never ignored**, whatever the policy. It is configuration, not knowledge, and it must stay portable for collaborators (see "What lands in the project"). Credentials never live in it — they stay in `.env` and are referenced by name.
+- **A rule cannot protect a path git already tracks — say so instead.** `.gitignore` has no effect on a tracked file, so in a retrofit where `AGENTS.md` (or `CLAUDE.md`) is already committed, writing a rule for it manufactures a false sense of protection. Test each path with `git ls-files --error-unmatch <path>`; when it is tracked, write no rule for it and tell the user plainly — e.g. "`AGENTS.md` is already in version control, so the Cairn section init added to it will go out with your next commit. Run `git rm --cached AGENTS.md` if it should stay local." The user decides; init never untracks a file on its own.
+- **Neutral comment.** Head the block with a comment that names neither Cairn nor the policy nor the reason: `# Local working files, not part of the project`. A `.gitignore` is public in a public repo; a comment naming the tool and the policy advertises exactly what the policy was chosen to keep quiet.
+- **Idempotent**: skip any path an equivalent rule already covers; never write duplicates on re-init or upgrade.
+- **The project's `.gitignore`, not `.git/info/exclude`**: the rule travels with the repo, so collaborators who clone it behave the same way. The residual cost — the path names themselves stay visible — is accepted as negligible against a collaborator accidentally committing an ignored `cairn/`.
+- **Under `track`, `.cairn/config.yaml` is never ignored on its own.** It is configuration, not knowledge, and collaborators need it portable (see "Files to create or update"). Under `ignore` / `private_sync` it goes out with the rest of the block. Credentials never live in it either way — they stay in `.env` and are referenced by name.
 
 ### Documentation language
 
@@ -153,7 +157,7 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 - `.cairn/config.yaml` — from `assets/templates/config.yaml`, with the collected values frozen in. `{{SKILL_SPEC_DATE}}` is stamped automatically from `references/upgrade.md`'s "Current spec date" — it is not a user decision and is never asked; it anchors later instance-drift checks (see `upgrade.md`).
 - `cairn/LOG.md` — from `assets/templates/LOG.md`.
 - `cairn/ROADMAP.md` — optional; only when the project has goals that outlast one session.
-- `.gitignore` — only when the resolved `git_policy` / `reference_git_policy` calls for a rule; created if absent, appended to idempotently otherwise (see "Enforcing `git_policy`").
+- `.gitignore` — only when the resolved `git_policy` / `reference_git_policy` calls for a rule; created if absent, appended to idempotently otherwise. The block covers `<knowledge_dir>/`, `.cairn/`, and any `AGENTS.md` / `CLAUDE.md` this init created, under a neutral comment (see "Enforcing `git_policy`").
 
 Do not pre-create empty topic notes, `Reference/`, or `Cited.md`. Those are created on first trigger.
 
