@@ -14,6 +14,7 @@ HTTPS_PROXY) + per-request retry to ride out SSL EOF flakiness, same transport
 lesson as notion-graduate.sh. `ntn` CLI is NOT used (proxy-unreliable).
 
 Title of each note = its filename stem (matches how wikilinks reference it).
+Inputs must already be prepared knowledge-base notes, not project topic notes.
 Frontmatter maps to DB properties. Notion-Version pinned to 2022-06-28.
 
 Requires: python3 + PyYAML. Token in env NOTION_API_TOKEN.
@@ -27,6 +28,10 @@ import os, re, sys, glob, json, time, ssl, argparse, urllib.request, urllib.erro
 
 NV = os.environ.get("NOTION_API_VERSION", "2022-06-28")
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
+
+
+class NoteValidationError(ValueError):
+    """An input note cannot safely be written as a knowledge-base note."""
 
 
 def api(method, path, body=None, tries=8, token=None):
@@ -51,8 +56,60 @@ def parse_note(fp):
     raw = open(fp, encoding="utf-8").read()
     m = re.match(r"^---\n(.*?)\n---\n(.*)$", raw, re.S)
     if not m:
-        raise SystemExit(f"no frontmatter: {fp}")
-    return os.path.splitext(os.path.basename(fp))[0], yaml.safe_load(m.group(1)), m.group(2)
+        raise NoteValidationError(f"{fp}: no YAML frontmatter")
+    try:
+        fm = yaml.safe_load(m.group(1))
+    except yaml.YAMLError as exc:
+        mark = getattr(exc, "problem_mark", None)
+        location = str(fp)
+        if mark is not None:
+            # The parsed string starts after the opening `---`, so its first
+            # line is line 2 in the Markdown file.
+            location += f":{mark.line + 2}:{mark.column + 1}"
+        problem = getattr(exc, "problem", None) or str(exc).splitlines()[-1]
+        hint = ""
+        if "escape" in problem.lower():
+            hint = (
+                " Hint: wrap path-like values in single quotes or double every "
+                "backslash inside a double-quoted YAML string."
+            )
+        raise NoteValidationError(
+            f"{location}: invalid YAML frontmatter: {problem}.{hint}"
+        ) from None
+
+    if not isinstance(fm, dict):
+        raise NoteValidationError(f"{fp}: YAML frontmatter must be a mapping")
+
+    problems = []
+    note_type = fm.get("type")
+    if note_type != "knowledge_note":
+        problems.append(
+            f"type is {note_type!r}; expected 'knowledge_note' on a prepared "
+            "knowledge-base note (do not pass a project topic directly)"
+        )
+    for field in ("graduated_from", "graduated_by"):
+        value = fm.get(field)
+        if not value or (isinstance(value, str) and not value.strip()):
+            problems.append(f"missing non-empty required field '{field}'")
+    if problems:
+        raise NoteValidationError(f"{fp}: " + "; ".join(problems))
+
+    return os.path.splitext(os.path.basename(fp))[0], fm, m.group(2)
+
+
+def parse_notes(files):
+    notes, errors = [], []
+    for fp in files:
+        try:
+            notes.append(parse_note(fp))
+        except (NoteValidationError, OSError) as exc:
+            errors.append(str(exc))
+    if errors:
+        raise SystemExit(
+            "input validation failed before any Notion request:\n"
+            + "\n".join(f"- {error}" for error in errors)
+        )
+    return notes
 
 
 def gfrom_text(gf, repo_prefix):
@@ -180,10 +237,6 @@ def main():
     ap.add_argument("files", nargs="*")
     a = ap.parse_args()
 
-    token = os.environ.get("NOTION_API_TOKEN")
-    if not a.dry_run and not token:
-        raise SystemExit("NOTION_API_TOKEN not set")
-
     files = list(a.files)
     if a.src_dir:
         files += [f for f in sorted(glob.glob(os.path.join(a.src_dir, "*.md")))
@@ -191,7 +244,11 @@ def main():
     if not files:
         raise SystemExit("no input notes (pass files or --src-dir)")
 
-    notes = [parse_note(f) for f in files]
+    notes = parse_notes(files)
+
+    token = os.environ.get("NOTION_API_TOKEN")
+    if not a.dry_run and not token:
+        raise SystemExit("NOTION_API_TOKEN not set")
 
     if a.dry_run:
         for title, fm, body in notes:
