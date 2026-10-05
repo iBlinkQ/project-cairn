@@ -2,7 +2,7 @@
 
 Bring an already-initialized project instance up to the current skill spec, or measure how far it has drifted. `cairn init` freezes the spec of its day into the project (AGENTS.md wording, config shape, LOG conventions); the skill keeps evolving, and nothing updates the frozen copy automatically. This reference is both the detection checklist and the execution manual for closing that gap.
 
-**Current spec date: 2026-09-04**
+**Current spec date: 2026-10-05**
 
 ## Two layers of "upgrade" — keep them apart
 
@@ -103,3 +103,10 @@ Entry format — four fixed fields:
 - **Detect**: in a project whose `.cairn/config.yaml` says `git_policy: ignore` or `private_sync`, run `git ls-files -- .cairn AGENTS.md CLAUDE.md '<knowledge_dir>'`. Any path listed = drifted: the policy says Cairn stays out of this repo, yet these are committed — and if the remote is public, already published. Separately drifted: the ignore block's comment names `cairn init`, the policy, or Cairn at all.
 - **Fix**: extend the ignore block to cover `<knowledge_dir>/`, `.cairn/`, and `AGENTS.md` / `CLAUDE.md` where Cairn authored them, and replace the block's comment with the neutral `# Local working files, not part of the project`. An ignore rule does nothing for a path git already tracks: list those paths for the user with `git rm --cached <path>` as the remedy and let them decide — untracking is theirs to approve, and where the repo was already pushed, say plainly that removing a file from HEAD does not remove it from history or from anything that already mirrored it.
 - **Safety**: `confirm` (changes what future commits contain, and may mean accepting or rewriting published history).
+
+### 2026-10-05 — hosts that load another entry file import `AGENTS.md`
+
+- **Affects**: `AGENTS.md` reach — the host entry files beside it (`CLAUDE.md`, `CODEBUDDY.md`).
+- **Detect**: the project has a root `CODEBUDDY.md` (or only `.codebuddy/CODEBUDDY.md`) with no line importing `AGENTS.md` = drifted: CodeBuddy-family hosts (CodeBuddy Code, CodeBuddy IDE, WorkBuddy) load `CODEBUDDY.md` instead of `AGENTS.md` whenever it exists, so no Cairn rule reaches them. Same check for a `CLAUDE.md` without an `@AGENTS.md` line (e.g. a retrofit that kept the project's own `CLAUDE.md`).
+- **Fix**: append the import line per `init.md` → "Host entry files", including its handling of a tracked file under `ignore` / `private_sync`; then hand the user that section's fresh-session check.
+- **Safety**: `confirm` (edits a file the project owns, and may change what its next commit contains).

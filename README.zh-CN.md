@@ -57,6 +57,8 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-
 
 操作入口见 [WorkBuddy 官方 Skill 文档](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Skills-Market)。
 
+技能提供方法，每轮都要遵守的规则写在项目的 `AGENTS.md` 里。在 WorkBuddy 里，把项目文件夹放进“项目”做代码开发时，它会读取这个文件。其他任务里，请在项目的“指令”中加一句：“进入项目先读根目录的 AGENTS.md，并把它当作项目规则遵守。”如果项目里已经有 `CODEBUDDY.md`，WorkBuddy 会读它而不读 `AGENTS.md`，所以初始化时会在其中加一行 `@AGENTS.md` 引入。
+
 其他兼容 Skill 的 Agent，把仓库 clone 到该 Agent 读取 Skill 的目录即可。安装后，`SKILL.md` 应直接位于 `project-cairn/` 根目录，不要再多嵌套一层。
 
 前置依赖是 `git`。`scripts/*.sh` 需要 `bash`，已在 macOS 和 Linux 上验证，Windows 需要 WSL 或 Git Bash；`scripts/*.py` 需要 Python 3，其中 `notion-graduate-batch.py` 还需要 PyYAML。目前没有包管理器版本。

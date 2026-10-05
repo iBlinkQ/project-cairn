@@ -57,6 +57,8 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-
 
 See the [official WorkBuddy skill guide](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Skills-Market) for the installation interface.
 
+The skill holds the method, and the project's `AGENTS.md` carries the rules the agent keeps every turn. WorkBuddy loads that file when you open the project folder in a WorkBuddy Project for code development. For other tasks, add one line to the Project's Instructions: "Read AGENTS.md at the project root and follow it as project rules." If the project already has a `CODEBUDDY.md`, WorkBuddy reads that file instead of `AGENTS.md`, so init adds an `@AGENTS.md` import line to it.
+
 For another skill-compatible agent, clone the repository into the directory where that agent loads skills. `SKILL.md` should sit directly at the root of `project-cairn/`, not inside another nested folder.
 
 Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3; `notion-graduate-batch.py` additionally requires PyYAML. There is no package-manager release yet.

@@ -46,12 +46,12 @@ The error directions are also not symmetric, which is why this class gets no low
 
 `git_policy` is not just a recorded intention: after writing `.cairn/config.yaml`, init makes the project's `.gitignore` match the chosen policy, so `git add .` cannot quietly contradict it.
 
-**What the policy covers.** `ignore` / `private_sync` mean "this repository's history carries no trace of Cairn" — not "the knowledge dir alone stays out". The rule therefore spans every path init lands: `<knowledge_dir>/`, `.cairn/`, and — only where init created them — `AGENTS.md` and `CLAUDE.md`. A private `cairn/` beside a committed `AGENTS.md` leaks strictly more than the directory name it was hiding: the project's one-line positioning, the graduation provider, the knowledge dir, the entire Cairn section. `.cairn/config.yaml` carries the provider target and index path for the same reason.
+**What the policy covers.** `ignore` / `private_sync` mean "this repository's history carries no trace of Cairn" — not "the knowledge dir alone stays out". The rule therefore spans every path init lands: `<knowledge_dir>/`, `.cairn/`, and — only where init created them — `AGENTS.md`, `CLAUDE.md` and `CODEBUDDY.local.md`. A host file the project already had, which init only appended an import line to, is not added; "Host entry files" covers it. A private `cairn/` beside a committed `AGENTS.md` leaks strictly more than the directory name it was hiding: the project's one-line positioning, the graduation provider, the knowledge dir, the entire Cairn section. `.cairn/config.yaml` carries the provider target and index path for the same reason.
 
 | Resolved policy | Action |
 |---|---|
 | `track` | Write no ignore rule. If an existing rule already ignores one of those paths, surface the conflict and let the user decide — never silently remove or override it. |
-| `ignore` / `private_sync` | Append one block to the project's `.gitignore` covering `<knowledge_dir>/`, `.cairn/`, and whichever of `AGENTS.md` / `CLAUDE.md` this init created. |
+| `ignore` / `private_sync` | Append one block to the project's `.gitignore` covering `<knowledge_dir>/`, `.cairn/`, and whichever host entry files this init created (`AGENTS.md`, `CLAUDE.md`, `CODEBUDDY.local.md`). |
 | `reference_git_policy` stricter than `git_policy` | Append `<knowledge_dir>/Reference/` only. |
 
 - **A rule cannot protect a path git already tracks — say so instead.** `.gitignore` has no effect on a tracked file, so in a retrofit where `AGENTS.md` (or `CLAUDE.md`) is already committed, writing a rule for it manufactures a false sense of protection. Test each path with `git ls-files --error-unmatch <path>`; when it is tracked, write no rule for it and tell the user plainly — e.g. "`AGENTS.md` is already in version control, so the Cairn section init added to it will go out with your next commit. Run `git rm --cached AGENTS.md` if it should stay local." The user decides; init never untracks a file on its own.
@@ -153,13 +153,28 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 ## Files to create or update
 
 - `AGENTS.md` — from `assets/templates/AGENTS.md`, substituting the five placeholders.
-- `CLAUDE.md` — from `assets/templates/CLAUDE.md` (one line `@AGENTS.md`).
+- `CLAUDE.md` — from `assets/templates/CLAUDE.md` (one line `@AGENTS.md`). An existing `CLAUDE.md` gets the line appended instead (see "Host entry files").
+- `CODEBUDDY.md` / `.codebuddy/CODEBUDDY.md` — only when one already exists: append the import line. Never create one (see "Host entry files").
 - `.cairn/config.yaml` — from `assets/templates/config.yaml`, with the collected values frozen in. `{{SKILL_SPEC_DATE}}` is stamped automatically from `references/upgrade.md`'s "Current spec date" — it is not a user decision and is never asked; it anchors later instance-drift checks (see `upgrade.md`).
 - `cairn/LOG.md` — from `assets/templates/LOG.md`.
 - `cairn/ROADMAP.md` — optional; only when the project has goals that outlast one session.
-- `.gitignore` — only when the resolved `git_policy` / `reference_git_policy` calls for a rule; created if absent, appended to idempotently otherwise. The block covers `<knowledge_dir>/`, `.cairn/`, and any `AGENTS.md` / `CLAUDE.md` this init created, under a neutral comment (see "Enforcing `git_policy`").
+- `.gitignore` — only when the resolved `git_policy` / `reference_git_policy` calls for a rule; created if absent, appended to idempotently otherwise. The block covers `<knowledge_dir>/`, `.cairn/`, and any host entry file this init created (`AGENTS.md`, `CLAUDE.md`, `CODEBUDDY.local.md`), under a neutral comment (see "Enforcing `git_policy`").
 
 Do not pre-create empty topic notes, `Reference/`, or `Cited.md`. Those are created on first trigger.
+
+## Host entry files
+
+`AGENTS.md` is the only copy of the rules, and routine maintenance happens only if the host injects it at the start of every session. A host that reads a different file gets one import line in that file, never a copy of the rules. Run these checks whichever host is running init: the project will be opened by other hosts later.
+
+| Host | Loads at session start | What init does |
+|---|---|---|
+| Codex and other agents that read `AGENTS.md` | `AGENTS.md` | Nothing more. |
+| Claude Code | `CLAUDE.md`, never `AGENTS.md` directly | No `CLAUDE.md` → create it from the template. Existing `CLAUDE.md` → append `@AGENTS.md` unless a line already imports it; never overwrite the user's file. |
+| CodeBuddy family (CodeBuddy Code, CodeBuddy IDE, WorkBuddy) | `CODEBUDDY.md` when one exists, otherwise `AGENTS.md` — either-or, not merged | No `CODEBUDDY.md` → nothing: `AGENTS.md` already loads, and creating one would switch it off. Existing root `CODEBUDDY.md` → append `@AGENTS.md` the same way. Only `.codebuddy/CODEBUDDY.md` → append `@../AGENTS.md`; CodeBuddy's docs say neither whether that file alone displaces `AGENTS.md` nor how its relative imports resolve, so rely on the check below. |
+
+- **A pre-existing host file under `ignore` / `private_sync`.** When git tracks it (`git ls-files --error-unmatch <path>`), the import line goes out with its next commit. Say so before writing and let the user choose: append anyway; for CodeBuddy, put the line in `CODEBUDDY.local.md` instead (CodeBuddy's per-user project memory, loaded alongside `CODEBUDDY.md` and kept out of git; if this init creates it, it joins the ignore block); or skip, accepting that this host will not see the rules. Never `git rm --cached` a host file the project already had.
+- **WorkBuddy reads project files only inside a Project.** Its docs describe loading a working directory's `AGENTS.md` / `CODEBUDDY.md` / `.codebuddy/` for code development in a Project; outside that, do not count on any project file arriving. When init runs in WorkBuddy, tell the user, and offer the fix no file can make: one line in the Project's Instructions field, which every task in it inherits — "Read AGENTS.md at the project root and follow it as project rules."
+- **Verify in a fresh session.** Hosts read these files when a session starts, and CodeBuddy needs a restart to pick up an edited memory file, so the session that ran init proves nothing. Hand the user this check: in a new session, ask the agent — without naming any file — what this project's completion reply gate requires. A correct answer means `AGENTS.md` arrived; in CodeBuddy Code, `/memory` also lists what loaded.
 
 ## History handling
 
