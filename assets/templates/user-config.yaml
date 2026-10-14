@@ -9,6 +9,8 @@ defaults:
   # See references/init.md → "Per-project decisions (never inherited)".
   migration_mode: "{{MIGRATION_MODE}}"
   language: "{{DOC_LANGUAGE}}"
+  # User's note identity habit; frozen into each newly initialized project.
+  note_type: {{NOTE_TYPE_YAML}}
 providers:
   # Keyed by provider type, not a list — a user typically has one habitual
   # target per provider type, so a list would raise "which one is the

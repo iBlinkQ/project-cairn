@@ -10,6 +10,7 @@ Initialize or retrofit Project Cairn in a project. This is an interactive setup 
 4. For each provider, collect target and index location. Do not hardcode concrete Obsidian vault paths or directory names; those are user/project choices.
 5. Historical knowledge strategy (`migration_mode`). Default: `start_fresh`.
 6. Documentation language used when writing generated files (`AGENTS.md`, `cairn/LOG.md`, `cairn/ROADMAP.md`, topic notes). Default: `en`.
+7. Shared note identity (`note_type`): offer `project_insight`, `项目经验`, and custom equally; follow [note-type.md](note-type.md) for explicit skip, unanswered prompts, validation, final confirmation, and rendering. Collect it even with a deferred provider.
 
 Resolve each decision through the cascading defaults below instead of re-asking from scratch every project.
 
@@ -18,16 +19,16 @@ Resolve each decision through the cascading defaults below instead of re-asking 
 Config resolves through three layers, highest wins (same model as git/npm/eslint):
 
 1. **Project-level** — `.cairn/config.yaml` in the project. Overrides everything.
-2. **User-level** — `~/.config/cairn/config.yaml`, shaped like `assets/templates/user-config.yaml`. Personal defaults: a `providers` directory keyed by provider type (look up by name, e.g. `providers.notion` — it is a dict, not a list to scan) holding the targets the user normally graduates to, plus their usual `migration_mode` / `language` under `defaults`. `git_policy` / `reference_git_policy` are **excluded by design** — see "Per-project decisions" below.
-3. **Built-in** — the template defaults shipped in `assets/templates/config.yaml` (`knowledge_dir: cairn`, `migration_mode: start_fresh`, `language: en`).
+2. **User-level** — `~/.config/cairn/config.yaml`, shaped like `assets/templates/user-config.yaml`. Personal defaults: a `providers` directory keyed by provider type (look up by name, e.g. `providers.notion` — it is a dict, not a list to scan) holding the targets the user normally graduates to, plus their usual `migration_mode` / `language` / `note_type` under `defaults`. `git_policy` / `reference_git_policy` are **excluded by design** — see "Per-project decisions" below.
+3. **Built-in** — the template defaults shipped in `assets/templates/config.yaml` (`knowledge_dir: cairn`, `migration_mode: start_fresh`, `language: en`; `project_insight` only after explicit type skip with no saved value).
 
 Credentials (tokens, vault secrets, Lark app secrets) never go in either config file. Keep them in `.env` or a secret store and reference them by name; they are never committed.
 
 ### First run vs. later runs
 
 - **First run (no user-level config):** ask the full question set above. After collecting answers, offer to save them as user-level defaults at `~/.config/cairn/config.yaml` — **excluding the per-project decisions below**, which are never written there.
-- **Later runs (user-level config exists):** show the resolved defaults and offer one-key reuse, phrased in the project's resolved `language` (e.g. in English: "Reuse usual config? [Enter]"). Only re-ask the decisions the user wants to change. The reuse panel covers `migration_mode`, `language`, and providers only; after the user accepts it, **still ask the per-project decisions separately** — one extra keystroke, not a re-interview.
-- **Non-interactive mode:** when a user-level config exists, apply the resolved values silently without prompting (for scripted or unattended setup). Per-project decisions have no resolved value to apply — see their fallback rule below.
+- **Later runs (user-level config exists):** show the resolved defaults and offer one-key reuse, phrased in the project's resolved `language` (e.g. in English: "Reuse usual config? [Enter]"). Only re-ask the decisions the user wants to change. The reuse panel covers `migration_mode`, `language`, `note_type` (show its value), and providers; a legacy user config missing `note_type` requires that one extra question, not a silent default; after the user accepts it, **still ask the per-project decisions separately** — one extra keystroke, not a re-interview.
+- **Non-interactive mode:** when a user-level config exists, apply the resolved values silently without prompting (for scripted or unattended setup). For `note_type`, apply only a supplied selection or explicit reuse/skip; missing answers do not imply skip (see `note-type.md`). Per-project decisions have no resolved value to apply — see their fallback rule below.
 
 ### Per-project decisions (never inherited)
 
@@ -71,6 +72,10 @@ Decision #6 resolves through the same three layers above. One extra rule governs
 This is a suggested default, not a silent decision: the user still confirms or overrides it like any other init question. Once confirmed, `language` is saved into `~/.config/cairn/config.yaml` exactly like `migration_mode`; the next `cairn init` — on either agent, in this project or a new one — reuses it via the "later runs" one-key flow above instead of re-detecting or re-asking.
 
 When the resolved `language` is not English, write `AGENTS.md` / `cairn/LOG.md` / `cairn/ROADMAP.md` / topic notes in that language: translate prose and section headings, but keep `{{PLACEHOLDER}}` tokens, frontmatter keys, and file names exactly as the English templates in `assets/templates/` define them, and preserve the same heading sequence. For Chinese, match established terms — including heading labels — using `references/zh-glossary.md` so wording stays consistent across independently-initialized projects.
+
+### Note identity
+
+New init freezes the selected string in `cairn.note_type`; saving personal defaults adds `defaults.note_type` without rewriting unrelated configuration. It is independent of `language`. Render `{{NOTE_TYPE_YAML}}` as the complete serialized string scalar described in [note-type.md](note-type.md). Existing projects missing the field retain the two legacy types and never consult personal defaults; changing a type in an existing note requires a separate confirmed migration or an explicit re-graduation change.
 
 ### What lands in the project
 
@@ -152,7 +157,7 @@ A provider that depends on an external tool (Lark/Feishu CLI, Notion API, a sync
 
 ## Files to create or update
 
-- `AGENTS.md` — from `assets/templates/AGENTS.md`, substituting the five placeholders.
+- `AGENTS.md` — from `assets/templates/AGENTS.md`, substituting its placeholders.
 - `CLAUDE.md` — from `assets/templates/CLAUDE.md` (one line `@AGENTS.md`). An existing `CLAUDE.md` gets the line appended instead (see "Host entry files").
 - `CODEBUDDY.md` / `.codebuddy/CODEBUDDY.md` — only when one already exists: append the import line. Never create one (see "Host entry files").
 - `.cairn/config.yaml` — from `assets/templates/config.yaml`, with the collected values frozen in. `{{SKILL_SPEC_DATE}}` is stamped automatically from `references/upgrade.md`'s "Current spec date" — it is not a user decision and is never asked; it anchors later instance-drift checks (see `upgrade.md`).

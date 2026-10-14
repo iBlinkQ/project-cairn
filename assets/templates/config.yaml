@@ -26,6 +26,10 @@ cairn:
   # reference_git_policy: "{{REFERENCE_GIT_POLICY}}"
   # language: en | zh | ... — language used when writing AGENTS.md/LOG.md/ROADMAP.md/topic notes for this project
   language: "{{DOC_LANGUAGE}}"
+  # Shared identity for newly written topic and graduated notes, independent
+  # of language. NOTE_TYPE_YAML is a complete quoted YAML string scalar.
+  # Legacy projects without this key retain project_topic / knowledge_note.
+  note_type: {{NOTE_TYPE_YAML}}
 graduation:
   # One or more graduation providers. Two equivalent forms:
   #

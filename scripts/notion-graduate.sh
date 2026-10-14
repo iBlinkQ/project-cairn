@@ -25,7 +25,7 @@
 # Usage:
 #   notion-graduate.sh --db DATABASE_ID --title TITLE [--content BODY.md]
 #     [--page-id EXISTING_PAGE_ID]
-#     [--type knowledge_note] [--contains a,b,c] [--tags a,b,c]
+#     [--type TYPE] [--contains a,b,c] [--tags a,b,c]
 #     [--graduated-from TEXT] [--graduated-at YYYY-MM-DD]
 #     [--contributor NAME]... [--graduated-by NAME]...
 #     [--authoring-mode ai_generated] [--props-json FILE] [--dry-run]
@@ -39,6 +39,7 @@ TYPE=""; CONTAINS=""; TAGS=""; GFROM=""; GAT=""; AMODE=""
 CONTRIBUTOR_ENTRIES=()
 GRADUATED_BY_ENTRIES=()
 DRY_RUN=0
+TYPE_GIVEN=0
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -48,7 +49,7 @@ while [ $# -gt 0 ]; do
     --page-id) PAGE_ID="${2:-}"; shift 2;;
     --title) TITLE="${2:-}"; shift 2;;
     --content) CONTENT_FILE="${2:-}"; shift 2;;
-    --type) TYPE="${2:-}"; shift 2;;
+    --type) [ $# -ge 2 ] || die "--type requires a value"; TYPE="$2"; TYPE_GIVEN=1; shift 2;;
     --contains) CONTAINS="${2:-}"; shift 2;;
     --tags) TAGS="${2:-}"; shift 2;;
     --graduated-from) GFROM="${2:-}"; shift 2;;
@@ -74,6 +75,10 @@ done
 [ -z "$PROPS_JSON" ] || [ -f "$PROPS_JSON" ] || die "props-json not found: $PROPS_JSON"
 command -v curl >/dev/null 2>&1 || die "curl not found"
 command -v jq   >/dev/null 2>&1 || die "jq not found"
+if [ "$TYPE_GIVEN" -eq 1 ]; then
+  jq -en --arg s "$TYPE" '$s | (test("[^[:space:]]") and (test("[\r\n\u2028\u2029]") | not))' >/dev/null ||
+    die "--type requires a non-empty, single-line string"
+fi
 command -v python3 >/dev/null 2>&1 || die "python3 not found (needed for md->blocks)"
 [ "$DRY_RUN" -eq 1 ] || [ -n "${NOTION_API_TOKEN:-}" ] || die "NOTION_API_TOKEN not set (put it in .env; run: set -a; . ./.env; set +a — bash/POSIX syntax; PowerShell users: \$env:NOTION_API_TOKEN='...' instead)"
 
@@ -90,6 +95,10 @@ GRADUATED_BY_JSON="$(json_string_array "${GRADUATED_BY_ENTRIES[@]:-}")"
 
 if [ -n "$PROPS_JSON" ]; then
   PROPS="$(cat "$PROPS_JSON")"
+  if [ "$TYPE_GIVEN" -eq 1 ]; then
+    printf '%s' "$PROPS" | jq -e --arg type "$TYPE" '.type.select.name == $type' >/dev/null ||
+      die "--props-json type must match the explicit --type"
+  fi
 else
   PROPS="$(jq -nc \
     --arg title "$TITLE" --arg type "$TYPE" --arg gfrom "$GFROM" \
@@ -256,6 +265,10 @@ if [ -n "$BACK" ]; then
     *"$TITLE"*) : ;;
     *) echo "warn: read-back title mismatch (got '$BT'); verify manually" >&2;;
   esac
+  if [ "$TYPE_GIVEN" -eq 1 ]; then
+    printf '%s' "$BACK" | jq -e --arg type "$TYPE" '.properties.type.select.name == $type' >/dev/null ||
+      echo "warn: read-back type mismatch; verify manually" >&2
+  fi
 fi
 
 jq -nc --arg id "$PAGE_ID" --arg url "$PAGE_URL" '{id:$id, url:$url}'

@@ -2,7 +2,7 @@
 
 Bring an already-initialized project instance up to the current skill spec, or measure how far it has drifted. `cairn init` freezes the spec of its day into the project (AGENTS.md wording, config shape, LOG conventions); the skill keeps evolving, and nothing updates the frozen copy automatically. This reference is both the detection checklist and the execution manual for closing that gap.
 
-**Current spec date: 2026-10-05**
+**Current spec date: 2026-10-14**
 
 ## Two layers of "upgrade" — keep them apart
 
@@ -110,3 +110,11 @@ Entry format — four fixed fields:
 - **Detect**: the project has a root `CODEBUDDY.md` (or only `.codebuddy/CODEBUDDY.md`) with no line importing `AGENTS.md` = drifted: CodeBuddy-family hosts (CodeBuddy Code, CodeBuddy IDE, WorkBuddy) load `CODEBUDDY.md` instead of `AGENTS.md` whenever it exists, so no Cairn rule reaches them. Same check for a `CLAUDE.md` without an `@AGENTS.md` line (e.g. a retrofit that kept the project's own `CLAUDE.md`).
 - **Fix**: append the import line per `init.md` → "Host entry files", including its handling of a tracked file under `ignore` / `private_sync`; then hand the user that section's fresh-session check.
 - **Safety**: `confirm` (edits a file the project owns, and may change what its next commit contains).
+
+
+### 2026-10-14 — configurable project-experience note identity
+
+- **Affects**: project `config` (`cairn.note_type`), optional personal defaults (`defaults.note_type`), topic-note templates/checks, graduation calls, and optionally historical project/knowledge-base note types.
+- **Detect**: parse `.cairn/config.yaml`: missing `cairn.note_type` means a compatible legacy project eligible for an optional upgrade, not invalid notes. A present value must be a non-empty single-line string. Only when a historical migration is requested, locate candidates in the configured knowledge directory and actual provider target, following stored graduation IDs and provenance; list old `project_topic` / `knowledge_note` values, not every matching note across the whole knowledge base. Verify target paths before proposing edits; never create a parallel directory from stale configuration.
+- **Fix**: offer the type choices and explicit skip rules in [note-type.md](note-type.md). Confirm the value/source, then freeze `cairn.note_type`; separately offer to save/update personal defaults while preserving other fields. Configuration confirmation does not authorize historical edits. If migration is wanted, show each candidate's location, old value and proposed value, obtain confirmation, back up, edit only type and normally maintained timestamps, preserve body/other fields, and independently reread. Declining migration is valid; routine edits preserve historical types and re-graduation discloses a proposed type change before confirmation. Missing-field projects keep `project_topic` / `knowledge_note` even when personal defaults have a new value.
+- **Safety**: `confirm` (chooses note identity and may edit personal configuration or historical/provider notes; configuration and migration are separate decisions).

@@ -51,7 +51,7 @@
 #       [--space-id ID|my_library] [--parent-node-token TOKEN]
 #       [--update-node-token TOKEN --update-obj-token TOKEN --update-url URL]
 #       [--index-doc OBJ_TOKEN] [--identity user|bot]
-#       [--type knowledge_note] [--summary TEXT] [--contains a,b,c] [--tags a,b,c]
+#       [--type TYPE] [--summary TEXT] [--contains a,b,c] [--tags a,b,c]
 #       [--graduated-from "<project>|<source path>" ...] [--authoring-mode ai_generated]
 #       [--contributor NAME ...] [--graduated-by NAME ...]
 #       [--dry-run]
@@ -72,6 +72,7 @@ UPDATE_NODE_TOKEN=""
 UPDATE_OBJ_TOKEN=""
 UPDATE_URL=""
 DRY_RUN=0
+TYPE_GIVEN=0
 TYPE=""; SUMMARY=""; CONTAINS=""; TAGS=""; AMODE=""
 FRONTMATTER_FLAGS_GIVEN=0
 GFROM_ENTRIES=()
@@ -91,7 +92,7 @@ while [ $# -gt 0 ]; do
     --update-obj-token) UPDATE_OBJ_TOKEN="${2:-}"; shift 2;;
     --update-url) UPDATE_URL="${2:-}"; shift 2;;
     --identity) IDENTITY="${2:-}"; shift 2;;
-    --type) TYPE="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
+    --type) [ $# -ge 2 ] || die "--type requires a value"; TYPE="$2"; TYPE_GIVEN=1; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --summary) SUMMARY="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --contains) CONTAINS="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
     --tags) TAGS="${2:-}"; FRONTMATTER_FLAGS_GIVEN=1; shift 2;;
@@ -117,6 +118,10 @@ done
 [ -z "$CONTENT_FILE" ] || [ -f "$CONTENT_FILE" ] || die "content file not found: $CONTENT_FILE"
 command -v "$CLI" >/dev/null 2>&1 || die "$CLI not found"
 command -v jq  >/dev/null 2>&1 || die "jq not found"
+if [ "$TYPE_GIVEN" -eq 1 ]; then
+  jq -en --arg s "$TYPE" '$s | (test("[^[:space:]]") and (test("[\r\n\u2028\u2029]") | not))' >/dev/null ||
+    die "--type requires a non-empty, single-line string"
+fi
 
 for e in "${GFROM_ENTRIES[@]:-}"; do
   [ -z "$e" ] && continue
@@ -183,8 +188,10 @@ if [ "$FRONTMATTER_FLAGS_GIVEN" -eq 1 ]; then
 $CONTRIBUTORS_YAML"
   [ -n "$GRADUATED_BY_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
 $GRADUATED_BY_YAML"
+  TYPE_YAML="knowledge_note"
+  [ "$TYPE_GIVEN" -eq 0 ] || TYPE_YAML="$(yaml_scalar "$TYPE")"
   FRONTMATTER="---
-type: ${TYPE:-knowledge_note}
+type: $TYPE_YAML
 summary: $(yaml_scalar "$SUMMARY")
 contains: $CONTAINS_YAML
 tags: $TAGS_YAML
@@ -268,6 +275,10 @@ if [ "$DRY_RUN" -eq 0 ]; then
     *"$TITLE"*) : ;;
     *) echo "warn: read-back did not contain the title; verify the node manually" >&2;;
   esac
+  if [ "$TYPE_GIVEN" -eq 1 ]; then
+    printf '%s' "$back" | grep -Fq "type: $TYPE_YAML" ||
+      echo "warn: read-back did not contain the expected type text; verify manually" >&2
+  fi
 fi
 
 # 5) Optionally append a link into the INDEX/container node (update_index),

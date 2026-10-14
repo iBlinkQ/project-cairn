@@ -6,6 +6,7 @@ Manual or agent-requested checks on the project knowledge layer. Audit is the sa
 
 - LOG entries that are too long or contain conclusions that belong in topic notes.
 - Topic notes without useful frontmatter.
+- Missing `cairn.note_type`: report the optional confirmed upgrade in `upgrade.md`, not an invalid project or a blocked maintenance/graduation. Old `project_topic` / `knowledge_note` values and mixed history after a declined migration remain valid. A present but invalid configured value needs correction (see [note-type.md](note-type.md)).
 - Missing topic notes for repeated decisions or solved problems.
 - Contradictions between topic notes and old LOG entries (topic notes win; flag the stale LOG entry).
 - Engineering assets mixed into `cairn/` that should move back to the code tree.

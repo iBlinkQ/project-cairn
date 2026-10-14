@@ -43,7 +43,7 @@
 # Usage:
 #   obsidian-graduate.sh --vault "<vault name>" --title TITLE --target "<folder>"
 #       [--content FILE] [--index "<folder>/INDEX.md"]
-#       [--type knowledge_note] [--summary TEXT] [--contains a,b,c] [--tags a,b,c]
+#       [--type TYPE] [--summary TEXT] [--contains a,b,c] [--tags a,b,c]
 #       --graduated-from "<project>|<source path>" [--graduated-from "..." ...]
 #       [--contributor NAME ...] [--graduated-by NAME ...]
 #       [--authoring-mode ai_generated] [--force] [--dry-run]
@@ -59,6 +59,7 @@ CLI="${OBSIDIAN_CLI:-obsidian}"
 VAULT=""; TITLE=""; TARGET=""; CONTENT_FILE=""; INDEX=""
 TYPE="knowledge_note"; SUMMARY=""; CONTAINS=""; TAGS=""; AMODE="ai_generated"
 FORCE=0; DRY_RUN=0
+TYPE_GIVEN=0
 GFROM_ENTRIES=()
 CONTRIBUTOR_ENTRIES=()
 GRADUATED_BY_ENTRIES=()
@@ -73,7 +74,7 @@ while [ $# -gt 0 ]; do
     --target) TARGET="${2:-}"; shift 2;;
     --content) CONTENT_FILE="${2:-}"; shift 2;;
     --index) INDEX="${2:-}"; shift 2;;
-    --type) TYPE="${2:-}"; shift 2;;
+    --type) [ $# -ge 2 ] || die "--type requires a value"; TYPE="$2"; TYPE_GIVEN=1; shift 2;;
     --summary) SUMMARY="${2:-}"; shift 2;;
     --contains) CONTAINS="${2:-}"; shift 2;;
     --tags) TAGS="${2:-}"; shift 2;;
@@ -99,6 +100,10 @@ done
 [ -z "$CONTENT_FILE" ] || [ -f "$CONTENT_FILE" ] || die "content file not found: $CONTENT_FILE"
 command -v "$CLI" >/dev/null 2>&1 || die "$CLI not found — run scripts/obsidian-preflight.sh first"
 command -v jq >/dev/null 2>&1 || die "jq not found"
+if [ "$TYPE_GIVEN" -eq 1 ]; then
+  jq -en --arg s "$TYPE" '$s | (test("[^[:space:]]") and (test("[\r\n\u2028\u2029]") | not))' >/dev/null ||
+    die "--type requires a non-empty, single-line string"
+fi
 
 for e in "${GFROM_ENTRIES[@]}"; do
   case "$e" in *"|"*) : ;; *) die "--graduated-from entries must be \"<project>|<source path>\", got: $e";; esac
@@ -174,8 +179,10 @@ $CONTRIBUTORS_YAML"
 [ -n "$GRADUATED_BY_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
 $GRADUATED_BY_YAML"
 
+TYPE_YAML="$TYPE"
+[ "$TYPE_GIVEN" -eq 0 ] || TYPE_YAML="$(yaml_scalar "$TYPE")"
 FRONTMATTER="---
-type: $TYPE
+type: $TYPE_YAML
 summary: $(yaml_scalar "$SUMMARY")
 contains: $CONTAINS_YAML
 tags: $TAGS_YAML
@@ -209,7 +216,7 @@ mv "$TMP_FILE" "$FULL_PATH" || die "could not move note into place"
 trap - EXIT
 
 # --- read-back verify (direct filesystem, no need to round-trip the flaky CLI) ---
-[ -f "$FULL_PATH" ] && grep -q "^type: $TYPE\$" "$FULL_PATH" || echo "warn: read-back did not find the expected frontmatter; verify manually" >&2
+[ -f "$FULL_PATH" ] && grep -Fqx "type: $TYPE_YAML" "$FULL_PATH" || echo "warn: read-back did not find the expected frontmatter; verify manually" >&2
 
 # --- optional INDEX append (WikiLink — this provider's native format),
 #     idempotent: skip if an entry for this title already exists.

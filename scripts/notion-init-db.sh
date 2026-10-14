@@ -12,12 +12,13 @@
 # macOS Bash 3.2 compatible. Requires: curl, jq. Token in env NOTION_API_TOKEN.
 #
 # Usage:
-#   notion-init-db.sh --parent-page-id PAGE_ID --title "<knowledge base name>" [--dry-run]
+#   notion-init-db.sh --parent-page-id PAGE_ID --title "<knowledge base name>" [--type TYPE] [--dry-run]
 # Output (stdout): JSON { database_id, url }
 set -uo pipefail
 
 NV="${NOTION_API_VERSION:-2022-06-28}"
 PARENT=""; TITLE=""; DRY_RUN=0
+TYPE="knowledge_note"; TYPE_GIVEN=0
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -25,6 +26,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --parent-page-id) PARENT="${2:-}"; shift 2;;
     --title) TITLE="${2:-}"; shift 2;;
+    --type) [ $# -ge 2 ] || die "--type requires a value"; TYPE="$2"; TYPE_GIVEN=1; shift 2;;
     --notion-version) NV="${2:-}"; shift 2;;
     --dry-run) DRY_RUN=1; shift;;
     -h|--help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
@@ -36,17 +38,23 @@ done
 [ -n "$TITLE" ] || die "--title is required (the knowledge-base database name, e.g. \"<Project Name> Knowledge Base\")"
 command -v curl >/dev/null 2>&1 || die "curl not found"
 command -v jq   >/dev/null 2>&1 || die "jq not found"
+if [ "$TYPE_GIVEN" -eq 1 ]; then
+  jq -en --arg s "$TYPE" '$s | (test("[^[:space:]]") and (test("[\r\n\u2028\u2029]") | not))' >/dev/null ||
+    die "--type requires a non-empty, single-line string"
+fi
 [ "$DRY_RUN" -eq 1 ] || [ -n "${NOTION_API_TOKEN:-}" ] || die "NOTION_API_TOKEN not set (put it in .env; run: set -a; . ./.env; set +a — bash/POSIX syntax; PowerShell users: \$env:NOTION_API_TOKEN='...' instead)"
 
 # Cairn property schema (matches notion-preflight.sh REQUIRED_PROPS).
 PAYLOAD_FILE="$(mktemp -t notion-initdb.XXXXXX)"
 trap 'rm -f "$PAYLOAD_FILE"' EXIT
-jq -nc --arg parent "$PARENT" --arg title "$TITLE" '{
+jq -nc --arg parent "$PARENT" --arg title "$TITLE" --arg type "$TYPE" '{
   parent: {type:"page_id", page_id:$parent},
   title: [{type:"text", text:{content:$title}}],
   properties: {
     "Name": {title:{}},
-    "type": {select:{options:[{name:"knowledge_note"},{name:"playbook"},{name:"reference"}]}},
+    "type": {select:{options: (["knowledge_note","playbook","reference"]
+      | if index($type) == null then . + [$type] else . end
+      | map({name:.}))}},
     "contains": {multi_select:{options:[{name:"decision"},{name:"experience"},{name:"lesson"},{name:"procedure"},{name:"reference"},{name:"open_question"}]}},
     "tags": {multi_select:{}},
     "graduated_from": {rich_text:{}},

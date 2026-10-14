@@ -955,27 +955,27 @@
         <div class="wikigrid">
           <div class="wiki ghost" id="w1" data-d="w1">
             <div class="wt" data-i18n="w1t">消息机器人对接</div>
-            <span class="fm">type: knowledge_note · contains: experience</span>
+            <span class="fm">type: project_insight · contains: experience</span>
             <div data-i18n="w1b">长连接偶发漏消息：初始化配置不应重复传入凭据…<br>关联 <span class="lnk">[[机器人权限配置]]</span></div>
           </div>
           <div class="wiki ghost" id="w2" data-d="w2">
             <div class="wt" data-i18n="w2t">前端框架选型：React vs Vue</div>
-            <span class="fm">type: knowledge_note · contains: decision</span>
+            <span class="fm">type: project_insight · contains: decision</span>
             <div data-i18n="w2b">中大型后台系统选 React：团队 TS 经验更足、生态更全…<br>关联 <span class="lnk">[[前端技术栈评估]]</span></div>
           </div>
           <div class="wiki ghost" id="w3" data-d="w3">
             <div class="wt" data-i18n="w3t">客户续约预警信号</div>
-            <span class="fm">type: knowledge_note · contains: lesson</span>
+            <span class="fm">type: project_insight · contains: lesson</span>
             <div data-i18n="w3b">报价单发出 3 天未回复 + 对接人更换，续约成功率骤降…<br>关联 <span class="lnk">[[客户健康度评估]]</span></div>
           </div>
           <div class="wiki ghost" id="w4" data-d="w4">
             <div class="wt" data-i18n="w4t">项目验收与汇报 SOP</div>
-            <span class="fm">type: knowledge_note · contains: procedure</span>
+            <span class="fm">type: project_insight · contains: procedure</span>
             <div data-i18n="w4b">验收前先对齐范围清单 → 分阶段汇报确认 → 书面签收，减少尾款争议…<br>关联 <span class="lnk">[[项目验收清单]]</span></div>
           </div>
           <div class="wiki ghost" id="w5" data-d="w5">
             <div class="wt" data-i18n="w5t">开源协议选型对照</div>
-            <span class="fm">type: knowledge_note · contains: reference</span>
+            <span class="fm">type: project_insight · contains: reference</span>
             <div data-i18n="w5b">商用场景优先 MIT / Apache-2.0，规避 GPL 系传染性条款…<br>关联 <span class="lnk">[[开源协议选择]]</span></div>
           </div>
         </div>
@@ -1095,7 +1095,7 @@ const DETAILS = {
   topic:{name:"cairn/<主题>.md", cat:"知识 · 当前真相", color:"var(--know)", rows:[
     ["创建触发","第一个需持续维护的结论域出现时"],
     ["维护","按主题原地更新；修订在 LOG 留一笔"],
-    ["最小元数据","frontmatter 至少要有非空 <code>type</code>（知识对象类别，如 <code>project_topic</code>）；推荐 summary / tags / status"],
+    ["最小元数据","frontmatter 至少要有非空 <code>type</code>（笔记身份，初始化可选 <code>project_insight</code> / 项目经验 / 自定义；旧项目保留原值）；推荐 summary / tags / status"],
     ["踩坑并入","用受控多值 <code>contains: decision / experience / lesson / procedure</code> 等标记内容成分，不再单独建 PITFALLS.md"],
     ["去向","验证后经 cairn graduate 蒸馏毕业进知识库；项目侧 <code>graduated_to</code> / <code>graduated_at</code> 第一版仅推荐"]]},
   ref:{name:"cairn/Reference/", cat:"外部输入 · Raw Sources", color:"var(--raw)", rows:[
@@ -1319,7 +1319,7 @@ const DETAILS_EN = {
   topic:{name:"cairn/&lt;topic&gt;.md", cat:"Knowledge · current truth", rows:[
     ["Creation trigger","When the first domain needing ongoing upkeep appears"],
     ["Upkeep","Update in place by topic; note the revision in LOG"],
-    ["Min metadata","Frontmatter needs at least a non-empty <code>type</code> (knowledge-object class, e.g. <code>project_topic</code>); summary / tags / status recommended"],
+    ["Min metadata","Frontmatter needs at least a non-empty <code>type</code> (note identity, selected at init: <code>project_insight</code> / 项目经验 / custom; legacy values remain valid); summary / tags / status recommended"],
     ["Fold pitfalls","Mark content facets with controlled multi-value <code>contains: decision / experience / lesson / procedure</code>, no separate PITFALLS.md"],
     ["Destination","After validation, graduate into the vault via cairn graduate; project-side <code>graduated_to</code> / <code>graduated_at</code> are recommended-only in v1"]]},
   ref:{name:"cairn/Reference/", cat:"External input · Raw Sources", rows:[

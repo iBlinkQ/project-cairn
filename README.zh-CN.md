@@ -61,7 +61,7 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-
 
 其他兼容 Skill 的 Agent，把仓库 clone 到该 Agent 读取 Skill 的目录即可。安装后，`SKILL.md` 应直接位于 `project-cairn/` 根目录，不要再多嵌套一层。
 
-前置依赖是 `git`。`scripts/*.sh` 需要 `bash`，已在 macOS 和 Linux 上验证，Windows 需要 WSL 或 Git Bash；`scripts/*.py` 需要 Python 3，其中 `notion-graduate-batch.py` 还需要 PyYAML。目前没有包管理器版本。
+前置依赖是 `git`。`scripts/*.sh` 需要 `bash`，已在 macOS 和 Linux 上验证，Windows 需要 WSL 或 Git Bash；`scripts/*.py` 需要 Python 3，其中 `notion-graduate-batch.py` 和 `resolve-note-type.py` 还需要 PyYAML。目前没有包管理器版本。
 
 ## 三步开始使用
 
@@ -110,7 +110,7 @@ Project Cairn 不预建一堆空模板。除了初始化所需的核心文件，
 
 被代码或工作流直接消费的 schema、配置和工程契约仍留在代码树里。Cairn 保存的是关于它们的知识，比如为什么这样设计、比较过哪些方案、实施时踩过什么坑。
 
-主题文档使用 Markdown 与 YAML frontmatter，至少包含一个 `type` 字段，对齐 Google [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) 的最小约定。这不等于完整实现 OKF bundle。
+主题文档使用 Markdown 与 YAML frontmatter，至少包含一个 `type` 字段，对齐 Google [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) 的最小约定。这不等于完整实现 OKF bundle。 初始化时，项目主题和毕业笔记的身份值可选择 `project_insight`、`项目经验` 或自定义；它独立于文档语言，可保存为用户级默认值。旧项目与历史笔记保留原值，升级配置和迁移历史分别确认。详见[笔记身份配置](references/note-type.md)。
 
 每篇毕业笔记还会记录来源和参与者，包括 `graduated_from`、`contributors`、`graduated_by` 与 `authoring_mode`，方便回到形成结论的项目和材料。
 
