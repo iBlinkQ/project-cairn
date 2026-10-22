@@ -1095,7 +1095,7 @@ const DETAILS = {
   topic:{name:"cairn/<主题>.md", cat:"知识 · 当前真相", color:"var(--know)", rows:[
     ["创建触发","第一个需持续维护的结论域出现时"],
     ["维护","按主题原地更新；修订在 LOG 留一笔"],
-    ["最小元数据","frontmatter 至少要有非空 <code>type</code>（笔记身份，初始化可选 <code>project_insight</code> / 项目经验 / 自定义；旧项目保留原值）；推荐 summary / tags / status"],
+    ["最小元数据","frontmatter 至少要有非空 <code>type</code>（笔记身份：新主题文档 <code>project_topic</code>，新毕业笔记 <code>project_insight</code>；历史值保留）；推荐 summary / tags / status"],
     ["踩坑并入","用受控多值 <code>contains: decision / experience / lesson / procedure</code> 等标记内容成分，不再单独建 PITFALLS.md"],
     ["去向","验证后经 cairn graduate 蒸馏毕业进知识库；项目侧 <code>graduated_to</code> / <code>graduated_at</code> 第一版仅推荐"]]},
   ref:{name:"cairn/Reference/", cat:"外部输入 · Raw Sources", color:"var(--raw)", rows:[
@@ -1319,7 +1319,7 @@ const DETAILS_EN = {
   topic:{name:"cairn/&lt;topic&gt;.md", cat:"Knowledge · current truth", rows:[
     ["Creation trigger","When the first domain needing ongoing upkeep appears"],
     ["Upkeep","Update in place by topic; note the revision in LOG"],
-    ["Min metadata","Frontmatter needs at least a non-empty <code>type</code> (note identity, selected at init: <code>project_insight</code> / 项目经验 / custom; legacy values remain valid); summary / tags / status recommended"],
+    ["Min metadata","Frontmatter needs at least a non-empty <code>type</code> (note identity: new topics <code>project_topic</code>, new graduated notes <code>project_insight</code>; historical types remain valid); summary / tags / status recommended"],
     ["Fold pitfalls","Mark content facets with controlled multi-value <code>contains: decision / experience / lesson / procedure</code>, no separate PITFALLS.md"],
     ["Destination","After validation, graduate into the vault via cairn graduate; project-side <code>graduated_to</code> / <code>graduated_at</code> are recommended-only in v1"]]},
   ref:{name:"cairn/Reference/", cat:"External input · Raw Sources", rows:[

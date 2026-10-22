@@ -22,7 +22,7 @@ Requires: python3 + PyYAML. Token in env NOTION_API_TOKEN.
 Usage:
   notion-graduate-batch.py --db DATABASE_ID --graduated-at YYYY-MM-DD \
       [--src-dir DIR | FILE.md ...] [--repo-prefix PATH]
-      [--expected-type TYPE] [--dry-run]
+      [--legacy-type TYPE ...] [--migrate-types] [--dry-run]
 Output (stdout): JSON { "<title>": "<page id>", ... }
 """
 import os, re, sys, glob, json, time, ssl, argparse, urllib.request, urllib.error
@@ -54,12 +54,15 @@ def api(method, path, body=None, tries=8, token=None):
 
 def validate_type(value):
     if not isinstance(value, str) or not value.strip() or any(c in value for c in "\r\n\u2028\u2029"):
-        raise NoteValidationError("expected type must be a non-empty, single-line string")
+        raise NoteValidationError("legacy type must be a non-empty, single-line string")
+    if value == "project_topic":
+        raise NoteValidationError("project_topic is project material, not a prepared knowledge-base note")
     return value
 
 
-def parse_note(fp, expected_type="knowledge_note"):
-    validate_type(expected_type)
+def parse_note(fp, legacy_types=()):
+    allowed_types = {"project_insight", "knowledge_note"}
+    allowed_types.update(validate_type(value) for value in legacy_types)
     import yaml
     raw = open(fp, encoding="utf-8").read()
     m = re.match(r"^---\n(.*?)\n---\n(.*)$", raw, re.S)
@@ -90,9 +93,9 @@ def parse_note(fp, expected_type="knowledge_note"):
 
     problems = []
     note_type = fm.get("type")
-    if not isinstance(note_type, str) or note_type != expected_type:
+    if not isinstance(note_type, str) or note_type not in allowed_types:
         problems.append(
-            f"type is {note_type!r}; expected {expected_type!r} on a prepared "
+            f"type is {note_type!r}; expected {sorted(allowed_types)!r} on a prepared "
             "knowledge-base note (do not pass a project topic directly)"
         )
     for field in ("graduated_from", "graduated_by"):
@@ -119,12 +122,12 @@ def parse_note(fp, expected_type="knowledge_note"):
     return os.path.splitext(os.path.basename(fp))[0], fm, m.group(2)
 
 
-def parse_notes(files, expected_type="knowledge_note"):
-    validate_type(expected_type)
+def parse_notes(files, legacy_types=()):
+    legacy_types = tuple(validate_type(value) for value in legacy_types)
     notes, errors = [], []
     for fp in files:
         try:
-            notes.append(parse_note(fp, expected_type))
+            notes.append(parse_note(fp, legacy_types))
         except (NoteValidationError, OSError) as exc:
             errors.append(str(exc))
     if errors:
@@ -256,7 +259,10 @@ def main():
     ap.add_argument("--graduated-at", default="")
     ap.add_argument("--src-dir", default="")
     ap.add_argument("--repo-prefix", default="")
-    ap.add_argument("--expected-type", default="knowledge_note")
+    ap.add_argument("--legacy-type", action="append", default=[],
+                    help="confirmed historical material type; repeat for mixed imports")
+    ap.add_argument("--migrate-types", action="store_true",
+                    help="write input types on existing pages only after separate type-migration confirmation")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("files", nargs="*")
     a = ap.parse_args()
@@ -269,7 +275,7 @@ def main():
         raise SystemExit("no input notes (pass files or --src-dir)")
 
     try:
-        notes = parse_notes(files, a.expected_type)
+        notes = parse_notes(files, a.legacy_type)
     except NoteValidationError as exc:
         ap.error(str(exc))
 
@@ -307,8 +313,13 @@ def main():
     idmap = dict(existing)
     for title, fm, body in notes:
         if title in idmap:
+            properties = props(title, fm, a.graduated_at, a.repo_prefix, {})
+            if not a.migrate_types:
+                # PATCH omission preserves the provider's current type even if
+                # the prepared input uses the new default. No migration implied.
+                properties.pop("type", None)
             res = api("PATCH", f"pages/{idmap[title]}",
-                      {"properties": props(title, fm, a.graduated_at, a.repo_prefix, {})},
+                      {"properties": properties},
                       token=token)
             if "__err__" in res:
                 raise SystemExit(f"update failed {title}: {res}")

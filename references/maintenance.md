@@ -23,7 +23,7 @@ An explicit read-only or no-edit request takes priority: do not write Cairn file
 The completion reply may proceed only after this self-check passes for records changed by this checkpoint:
 
 - Every `cairn/LOG.md` entry added or modified by this checkpoint is in the correct newest-first position and is ≤20 lines; every local Markdown detail pointer in each such entry resolves to an existing target. Do not scan or block on unrelated historical entries here; broader history inspection belongs to `cairn audit`.
-- Every new AI-generated topic has valid YAML frontmatter with the project-resolved `type` (see [note-type.md](note-type.md); a legacy project without `cairn.note_type` uses `project_topic`), `authoring_mode: ai_generated`, and an inline `contains` list whose values match the actual content (for example, `decision` for a decision or `lesson` for a solved pitfall). Do not invent a different schema.
+- Every new AI-generated topic has valid YAML frontmatter with `type: project_topic`, `authoring_mode: ai_generated`, and an inline `contains` list whose values match the actual content (for example, `decision` for a decision or `lesson` for a solved pitfall). Do not invent a different schema.
 - ROADMAP changed only when project state changed.
 
 If any check fails, fix the record before replying.
@@ -31,7 +31,7 @@ If any check fails, fix the record before replying.
 ## Rules
 
 - Add a new entry to the top of `cairn/LOG.md` after substantive progress (reverse-chronological, newest first): what happened, what was decided, a pointer to detail. Keep each entry short (≤ ~20 lines).
-- Update or create `cairn/<topic>.md` when a stable conclusion, decision, lesson, or reusable pattern appears. Create the topic note from `assets/templates/topic.md`, substituting `{{NOTE_TYPE_YAML}}` with the resolved quoted scalar; keep only body sections that have content. Ordinary edits preserve existing topic types, including legacy values after a configuration-only upgrade.
+- Update or create `cairn/<topic>.md` when a stable conclusion, decision, lesson, or reusable pattern appears. Create new topics with `type: project_topic` from `assets/templates/topic.md` and keep only the body sections that have content. Routine edits preserve an existing topic's type, including historical Chinese or custom values. Old type configuration fields are ignored; never infer migration permission from a skill update (see `upgrade.md`).
 - When identifiable humans substantively form a topic's knowledge, add them to the topic frontmatter `contributors` list; ask rather than invent an identity when it cannot be resolved safely.
 - A topic may include `### Origin quote` (translated per `zh-glossary.md`) inside its formation/background section only when a short direct excerpt materially restores the scene and is safe to retain. Include speaker/approved role, date, and context; omit the subsection entirely when no suitable quote exists.
 - Preserve direct wording. Mark limited redaction explicitly (`[redacted]` / `[已脱敏]`); if safe use requires substantial rewriting, write a scene summary instead of labeling it a quote.

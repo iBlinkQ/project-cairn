@@ -33,14 +33,14 @@ graduated_by: [Alice]""",
     message = str(exc.value)
     assert str(note) in message
     assert "project_topic" in message
-    assert "knowledge_note" in message
+    assert "project_insight" in message
     assert "prepared knowledge-base note" in message
 
 
 @pytest.mark.parametrize("missing_field", ["graduated_from", "graduated_by"])
 def test_parse_note_requires_knowledge_base_provenance(tmp_path, missing_field):
     fields = {
-        "type": "type: knowledge_note",
+        "type": "type: project_insight",
         "graduated_from": "graduated_from: [{project: Demo, path: cairn/topic.md}]",
         "graduated_by": "graduated_by: [Alice]",
     }
@@ -60,7 +60,7 @@ def test_parse_note_reports_yaml_file_line_column_and_hint(tmp_path):
     note = write_note(
         tmp_path,
         "invalid-yaml.md",
-        """type: knowledge_note
+        """type: project_insight
 summary: "实体在 E:\\.dsh"
 graduated_from: [{project: Demo, path: cairn/topic.md}]
 graduated_by: [Alice]""",
@@ -80,7 +80,7 @@ def test_parse_note_accepts_prepared_knowledge_base_note(tmp_path):
     note = write_note(
         tmp_path,
         "ready.md",
-        """type: knowledge_note
+        """type: project_insight
 graduated_from: [{project: Demo, path: cairn/topic.md}]
 graduated_by: [Alice]""",
     )
@@ -88,7 +88,7 @@ graduated_by: [Alice]""",
     title, frontmatter, body = MODULE.parse_note(note)
 
     assert title == "ready"
-    assert frontmatter["type"] == "knowledge_note"
+    assert frontmatter["type"] == "project_insight"
     assert body == "# Note\nBody\n"
 
 
@@ -103,7 +103,7 @@ graduated_by: [Alice]""",
     second = write_note(
         tmp_path,
         "second.md",
-        """type: knowledge_note
+        """type: project_insight
 graduated_from: [{project: Demo, path: cairn/second.md}]""",
     )
 

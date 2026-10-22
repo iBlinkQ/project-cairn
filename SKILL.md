@@ -36,4 +36,4 @@ Frontmatter describes triggers, not workflow.
 - Audit is the safety net for missed records.
 - Graduation is candidate detection plus human confirmation.
 - Historical migration is optional and separate from init.
-- `scripts/*.sh` use bash (verified on macOS/Linux; Windows needs WSL or Git Bash). `scripts/*.py` use Python 3 without a shell; `notion-graduate-batch.py` and `resolve-note-type.py` need PyYAML.
+- `scripts/*.sh` use bash (verified on macOS/Linux; Windows needs WSL or Git Bash). `scripts/*.py` use Python 3 without a shell; `notion-graduate-batch.py` also needs PyYAML.

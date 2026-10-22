@@ -122,6 +122,9 @@ if [ "$TYPE_GIVEN" -eq 1 ]; then
   jq -en --arg s "$TYPE" '$s | (test("[^[:space:]]") and (test("[\r\n\u2028\u2029]") | not))' >/dev/null ||
     die "--type requires a non-empty, single-line string"
 fi
+if [ -n "$UPDATE_NODE_TOKEN" ] && [ "$FRONTMATTER_FLAGS_GIVEN" -eq 1 ] && [ "$TYPE_GIVEN" -eq 0 ]; then
+  die "updating metadata requires --type with the target's current value; a type change needs separate confirmation"
+fi
 
 for e in "${GFROM_ENTRIES[@]:-}"; do
   [ -z "$e" ] && continue
@@ -188,7 +191,7 @@ if [ "$FRONTMATTER_FLAGS_GIVEN" -eq 1 ]; then
 $CONTRIBUTORS_YAML"
   [ -n "$GRADUATED_BY_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
 $GRADUATED_BY_YAML"
-  TYPE_YAML="knowledge_note"
+  TYPE_YAML="project_insight"
   [ "$TYPE_GIVEN" -eq 0 ] || TYPE_YAML="$(yaml_scalar "$TYPE")"
   FRONTMATTER="---
 type: $TYPE_YAML

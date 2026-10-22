@@ -47,6 +47,8 @@
 #       --graduated-from "<project>|<source path>" [--graduated-from "..." ...]
 #       [--contributor NAME ...] [--graduated-by NAME ...]
 #       [--authoring-mode ai_generated] [--force] [--dry-run]
+# New notes default to project_insight. For an existing --force target, pass
+# its current --type explicitly; changing it requires separate confirmation.
 #
 # Output (stdout): JSON { path, obsidian_url }
 # obsidian_url follows Obsidian's documented obsidian://open URI scheme.
@@ -57,7 +59,7 @@ set -uo pipefail
 
 CLI="${OBSIDIAN_CLI:-obsidian}"
 VAULT=""; TITLE=""; TARGET=""; CONTENT_FILE=""; INDEX=""
-TYPE="knowledge_note"; SUMMARY=""; CONTAINS=""; TAGS=""; AMODE="ai_generated"
+TYPE="project_insight"; SUMMARY=""; CONTAINS=""; TAGS=""; AMODE="ai_generated"
 FORCE=0; DRY_RUN=0
 TYPE_GIVEN=0
 GFROM_ENTRIES=()
@@ -159,6 +161,9 @@ FULL_PATH="$VAULT_PATH/$REL_PATH"
 
 if [ -e "$FULL_PATH" ] && [ "$FORCE" -ne 1 ]; then
   die "note already exists at '$REL_PATH' — pass --force to overwrite"
+fi
+if [ -e "$FULL_PATH" ] && [ "$TYPE_GIVEN" -eq 0 ]; then
+  die "updating an existing note requires --type with its current value; a type change needs separate confirmation"
 fi
 
 # --- assemble frontmatter ---

@@ -61,7 +61,7 @@ The skill holds the method, and the project's `AGENTS.md` carries the rules the 
 
 For another skill-compatible agent, clone the repository into the directory where that agent loads skills. `SKILL.md` should sit directly at the root of `project-cairn/`, not inside another nested folder.
 
-Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3; `notion-graduate-batch.py` and `resolve-note-type.py` additionally require PyYAML. There is no package-manager release yet.
+Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have been verified on macOS and Linux; Windows users need WSL or Git Bash. Python scripts require Python 3; `notion-graduate-batch.py` additionally requires PyYAML. There is no package-manager release yet.
 
 ## Start in three steps
 
@@ -110,7 +110,7 @@ Project Cairn does not stamp out a directory full of empty templates. Beyond the
 
 Schemas, configurations, and contracts consumed directly by code stay in the code tree. Cairn keeps the knowledge around them: why they look this way, what alternatives were tested, and what went wrong during implementation.
 
-Topic notes use Markdown and YAML frontmatter with at least a `type` field, following the minimal convention of Google's [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing). Project Cairn does not claim to implement the complete OKF bundle. At initialization, choose the shared identity for topic and graduated notes: `project_insight`, `项目经验`, or custom. It is independent of document language and saved as a reusable personal default; existing projects and notes keep their legacy types until a confirmed upgrade/migration. See [note identity configuration](references/note-type.md).
+Topic notes use Markdown and YAML frontmatter with at least a `type` field, following the minimal convention of Google's [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing). Project Cairn does not claim to implement the complete OKF bundle. New project topics use `project_topic`; newly graduated notes use `project_insight`. Initialization does not ask for a type. Existing note types remain valid and are preserved unless a separate migration is confirmed. See [frontmatter](references/frontmatter.md).
 
 Graduated notes carry provenance through `graduated_from`, `contributors`, `graduated_by`, and `authoring_mode`, so readers can trace a conclusion back to the people, project, and source material that produced it.
 

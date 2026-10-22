@@ -1,5 +1,5 @@
 ---
-type: {{NOTE_TYPE_YAML}}
+type: project_topic
 status: active
 summary: ""
 tags: []

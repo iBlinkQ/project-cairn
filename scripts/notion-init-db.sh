@@ -18,7 +18,7 @@ set -uo pipefail
 
 NV="${NOTION_API_VERSION:-2022-06-28}"
 PARENT=""; TITLE=""; DRY_RUN=0
-TYPE="knowledge_note"; TYPE_GIVEN=0
+TYPE="project_insight"; TYPE_GIVEN=0
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -52,7 +52,7 @@ jq -nc --arg parent "$PARENT" --arg title "$TITLE" --arg type "$TYPE" '{
   title: [{type:"text", text:{content:$title}}],
   properties: {
     "Name": {title:{}},
-    "type": {select:{options: (["knowledge_note","playbook","reference"]
+    "type": {select:{options: (["project_insight","knowledge_note","playbook","reference"]
       | if index($type) == null then . + [$type] else . end
       | map({name:.}))}},
     "contains": {multi_select:{options:[{name:"decision"},{name:"experience"},{name:"lesson"},{name:"procedure"},{name:"reference"},{name:"open_question"}]}},

@@ -29,6 +29,8 @@
 #     [--graduated-from TEXT] [--graduated-at YYYY-MM-DD]
 #     [--contributor NAME]... [--graduated-by NAME]...
 #     [--authoring-mode ai_generated] [--props-json FILE] [--dry-run]
+# New pages default to project_insight. Updates omit type unless --type is
+# explicit, preserving the target's type after a declined migration.
 #
 # Output (stdout): JSON { id, url }
 set -uo pipefail
@@ -79,6 +81,9 @@ if [ "$TYPE_GIVEN" -eq 1 ]; then
   jq -en --arg s "$TYPE" '$s | (test("[^[:space:]]") and (test("[\r\n\u2028\u2029]") | not))' >/dev/null ||
     die "--type requires a non-empty, single-line string"
 fi
+if [ -z "$PAGE_ID" ] && [ "$TYPE_GIVEN" -eq 0 ]; then
+  TYPE="project_insight"
+fi
 command -v python3 >/dev/null 2>&1 || die "python3 not found (needed for md->blocks)"
 [ "$DRY_RUN" -eq 1 ] || [ -n "${NOTION_API_TOKEN:-}" ] || die "NOTION_API_TOKEN not set (put it in .env; run: set -a; . ./.env; set +a — bash/POSIX syntax; PowerShell users: \$env:NOTION_API_TOKEN='...' instead)"
 
@@ -95,9 +100,12 @@ GRADUATED_BY_JSON="$(json_string_array "${GRADUATED_BY_ENTRIES[@]:-}")"
 
 if [ -n "$PROPS_JSON" ]; then
   PROPS="$(cat "$PROPS_JSON")"
-  if [ "$TYPE_GIVEN" -eq 1 ]; then
-    printf '%s' "$PROPS" | jq -e --arg type "$TYPE" '.type.select.name == $type' >/dev/null ||
-      die "--props-json type must match the explicit --type"
+  if [ -n "$TYPE" ]; then
+    printf '%s' "$PROPS" | jq -e --arg type "$TYPE" '(has("type") | not) or .type.select.name == $type' >/dev/null ||
+      die "--props-json type must match --type (new pages default to project_insight)"
+    PROPS="$(printf '%s' "$PROPS" | jq -c --arg type "$TYPE" '. + {type:{select:{name:$type}}}')"
+  elif printf '%s' "$PROPS" | jq -e 'has("type")' >/dev/null; then
+    die "updating type through --props-json requires explicit --type with the confirmed target value"
   fi
 else
   PROPS="$(jq -nc \
@@ -265,7 +273,7 @@ if [ -n "$BACK" ]; then
     *"$TITLE"*) : ;;
     *) echo "warn: read-back title mismatch (got '$BT'); verify manually" >&2;;
   esac
-  if [ "$TYPE_GIVEN" -eq 1 ]; then
+  if [ -n "$TYPE" ]; then
     printf '%s' "$BACK" | jq -e --arg type "$TYPE" '.properties.type.select.name == $type' >/dev/null ||
       echo "warn: read-back type mismatch; verify manually" >&2
   fi
