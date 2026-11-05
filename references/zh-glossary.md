@@ -13,7 +13,10 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 | adoption bar | 采用门槛 |
 | negative adoption | 排除法式采用 |
 | topic note | 知识专题文档 |
-| knowledge base | 知识库 |
+| process document | 过程文档 |
+| one-shot graduation | 一次性毕业 |
+| knowledge base / project experience library | 知识库 / 项目经验库 |
+| knowledge-base audit | 项目经验库体检 |
 | contributor | 贡献者 |
 | origin quote | 原话引述 |
 | scene summary | 场景摘要 |

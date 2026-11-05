@@ -33,7 +33,7 @@ Conditionally present when identifiable human contributors exist:
 
 - `contributors`
 
-`graduated_from` and a non-empty `graduated_by` are required on the knowledge-base side for every new graduation. Project-side `graduated_to` is recommended but not mandatory. Applicability, version/time context, last-verification time, and source backlinks should appear in the note body when they are not promoted to frontmatter. Legacy notes remain valid under the audit policy: backfill `contributors` when a team topic is touched and `graduated_by` when it is re-graduated.
+`graduated_from` and a non-empty `graduated_by` are required on the knowledge-base side for every new Cairn graduation (both normal project graduation and uninitialized one-shot graduation). Manually written notes placed directly into the knowledge base may omit `graduated_from` and `graduated_by`; knowledge-base audit must not flag their absence or fabricate a confirmer. Project-side `graduated_to` / `graduated_at` are recommended on graduated project topic notes and added as the only two back-pointer fields on source notes during one-shot graduation. Project process documents (proposals, reviews, meeting minutes, retrospectives, or in-project experience/convention notes) do not require a `type` field (`project_insight` is only for graduated knowledge-base notes). Applicability, version/time context, last-verification time, and source backlinks should appear in the note body when they are not promoted to frontmatter. Legacy notes remain valid under the audit policy: backfill `contributors` when a team topic is touched and `graduated_by` when it is re-graduated.
 
 ### `graduated_from` shape
 
@@ -49,7 +49,7 @@ graduated_from:
 
 Every provider that writes structured frontmatter (as opposed to leaving frontmatter for the caller to hand-embed, e.g. Lark) should use this shape, not a single string. `scripts/obsidian-graduate.sh` builds it from repeatable `--graduated-from "<project>|<path>"` flags.
 
-For `path`, prefer the **source-project-relative** path (e.g. `cairn/<topic>.md`): the `project` field already says which project, and a relative path survives machine moves and repo relocations. Absolute paths appear in older production notes and remain acceptable; new graduations should write project-relative.
+For `path`, prefer the **source-project-relative** path: in an initialized Cairn project, `graduated_from` points to the project topic note `cairn/<topic>.md` (and may additionally list original process documents); in one-shot graduation without init, `graduated_from` points directly to the source note(s) in the project folder (e.g. `复盘总结.md`). The `project` field already says which project, and a relative path survives machine moves and repo relocations. Absolute paths appear in older production notes and remain acceptable; new graduations should write project-relative.
 
 ### Human provenance shape
 

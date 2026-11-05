@@ -69,6 +69,12 @@ Prerequisites are `git`, plus `bash` for `scripts/*.sh`. The shell scripts have 
 2. Keep working normally. During ordinary collaboration turns, the agent follows `AGENTS.md` to maintain progress and current conclusions. There is no separate recording service to run.
 3. When a validated lesson could help another project, ask the agent to prepare a graduation candidate. Nothing is written to the long-term knowledge base until you confirm the scope. Later projects search first and add a pointer to `cairn/Cited.md` only when a result actually influences the work.
 
+Already have an ongoing project or a finished project folder?
+
+- **Ongoing projects**: after initializing, ask the agent to organize existing experience ("整理已有经验"). It scans existing proposals, meeting notes, and in-project experience/convention documents, updates `cairn/ROADMAP.md`, and distills still-valid conclusions into topic notes while leaving original files untouched.
+- **Finished or uninitialized folders (one-shot graduation)**: no initialization or `cairn/` folder is needed. Open the folder and ask "See what experience in this folder can graduate" ("看看这个文件夹里有什么经验可以毕业"), or name a specific retrospective/summary note directly. The agent reads `~/.config/cairn/config.yaml`, excludes external reference material, proposes reusable candidates, and — once you confirm — writes the knowledge-base note (`type: project_insight`), updates `INDEX.md`, adds only `graduated_to` / `graduated_at` back-pointers to the source note, and logs a `毕业：[[...]]` line under today's date if a project record note exists.
+- **Knowledge-base audit (`项目经验库体检`)**: run directly against an Obsidian knowledge-base folder without project init to backfill manually written notes into `INDEX.md` and propose fixes for notes missing `type` / `summary` or not opening with **Background** (manual notes without `graduated_from` are valid and not flagged).
+
 ## The two sides
 
 Project Cairn separates two lifecycles instead of putting every kind of information into one ever-growing file.
@@ -87,7 +93,7 @@ Take the messaging-bot problem:
 1. Initialization writes the Cairn rules and configuration into the project.
 2. As the agent investigates, meaningful progress is recorded in `LOG.md`.
 3. Once the cause and fix are verified, the current conclusion moves into a topic note.
-4. Stable conclusions from specs, plans, reviews, or retrospectives may also be distilled. The process artifacts stay where they are.
+4. Stable conclusions from proposals, specs, plans, reviews, meeting notes, retrospectives, or in-project experience and convention notes (written by you or organized with AI) are also distilled into topic notes. Those process documents stay where they are and need no `type`.
 5. The agent notices that the lesson may be reusable and proposes it as a graduation candidate.
 6. After you approve, the agent removes project-specific noise, adds context and limits, records provenance, writes the note, and updates the provider's index.
 7. A later project searches the knowledge base before solving the problem again. If a note shapes the work, `Cited.md` records a pointer rather than a duplicate.
@@ -158,12 +164,12 @@ An agent remembering something is not the same as a project learning it.
 | Reference | Use it for |
 |---|---|
 | `references/init.md` | Initializing or retrofitting Project Cairn |
-| `references/maintenance.md` | Maintaining `LOG.md`, `ROADMAP.md`, and topic notes |
-| `references/graduation.md` | Judging, distilling, and writing reusable knowledge |
+| `references/maintenance.md` | Maintaining `LOG.md`, `ROADMAP.md`, and topic notes (including distilling process documents) |
+| `references/graduation.md` | Judging, distilling, and writing reusable knowledge (including one-shot graduation without init) |
 | `references/graduation/` | One execution path per provider (Lark wiki, Notion, Obsidian) |
 | `references/provider-interface.md` | The behavioral contract for provider adapters |
 | `references/consume.md` | Searching, using, and citing external knowledge |
-| `references/audit.md` | Finding drift, contradictions, and missing records |
+| `references/audit.md` | Finding project drift, contradictions, and missing records, plus standalone knowledge-base audits |
 | `references/upgrade.md` | Checking and upgrading an initialized project |
 | `references/frontmatter.md` | Fields for project notes and knowledge-base notes |
 | `references/branch-closure.md` | Salvaging knowledge before an exploration branch closes |

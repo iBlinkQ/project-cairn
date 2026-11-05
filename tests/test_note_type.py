@@ -282,3 +282,54 @@ def test_project_topic_cannot_be_allowlisted(tmp_path, monkeypatch):
     calls = batch_calls(monkeypatch, [note], '--legacy-type', 'project_topic')
     with pytest.raises(SystemExit): BATCH.main()
     assert calls == []
+
+
+@pytest.mark.parametrize('flag', ['--index-only', '--register-index-only'])
+def test_obsidian_index_only_registers_existing_note_idempotently(provider_env, flag):
+    _, vault, env = provider_env
+    kb = vault / 'kb'
+    kb.mkdir()
+    manual = kb / 'ManualNote.md'
+    original = '---\ntype: project_insight\nsummary: 手写知识笔记\n---\n## 背景\n背景\n## 结论\n结论\n'
+    manual.write_text(original)
+
+    dry = run_adapter('obsidian-graduate.sh', [
+        '--vault', 'Test Vault', '--title', 'ManualNote', '--target', 'kb',
+        '--index', 'kb/INDEX.md', '--summary', '手写知识笔记', flag, '--dry-run',
+    ], env)
+    assert dry.returncode == 0, dry.stderr
+    dry_payload = json.loads(dry.stdout)
+    assert dry_payload['obsidian_url'] == '<dry-run>'
+    assert dry_payload['path'] == 'kb/ManualNote.md'
+    assert not (kb / 'INDEX.md').exists()
+    assert manual.read_text() == original
+
+    first = run_adapter('obsidian-graduate.sh', [
+        '--vault', 'Test Vault', '--title', 'ManualNote', '--target', 'kb',
+        '--index', 'kb/INDEX.md', '--summary', '手写知识笔记', flag,
+    ], env)
+    assert first.returncode == 0, first.stderr
+    payload = json.loads(first.stdout)
+    assert payload['path'] == 'kb/ManualNote.md'
+    index_text = (kb / 'INDEX.md').read_text()
+    assert index_text.count('[[ManualNote]]') == 1
+    assert '- [[ManualNote]] — 手写知识笔记' in index_text
+    assert manual.read_text() == original
+
+    second = run_adapter('obsidian-graduate.sh', [
+        '--vault', 'Test Vault', '--title', 'ManualNote', '--target', 'kb',
+        '--index', 'kb/INDEX.md', '--summary', '手写知识笔记', flag,
+    ], env)
+    assert second.returncode == 0, second.stderr
+    assert (kb / 'INDEX.md').read_text().count('[[ManualNote]]') == 1
+    assert manual.read_text() == original
+
+
+def test_obsidian_index_only_requires_index_flag(provider_env):
+    _, _, env = provider_env
+    missing = run_adapter('obsidian-graduate.sh', [
+        '--vault', 'Test Vault', '--title', 'ManualNote', '--target', 'kb', '--index-only',
+    ], env)
+    assert missing.returncode != 0
+    assert 'is required with --index-only' in missing.stderr
+

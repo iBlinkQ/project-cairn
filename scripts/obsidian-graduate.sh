@@ -47,8 +47,12 @@
 #       --graduated-from "<project>|<source path>" [--graduated-from "..." ...]
 #       [--contributor NAME ...] [--graduated-by NAME ...]
 #       [--authoring-mode ai_generated] [--force] [--dry-run]
+#   obsidian-graduate.sh --index-only --vault "<vault name>" --title TITLE
+#       --index "<folder>/INDEX.md" [--target "<folder>"] [--summary TEXT] [--dry-run]
 # New notes default to project_insight. For an existing --force target, pass
 # its current --type explicitly; changing it requires separate confirmation.
+# --index-only (--register-index-only) appends an idempotent [[Title]] entry to
+# INDEX without writing or modifying the note file or requiring --graduated-from.
 #
 # Output (stdout): JSON { path, obsidian_url }
 # obsidian_url follows Obsidian's documented obsidian://open URI scheme.
@@ -60,7 +64,7 @@ set -uo pipefail
 CLI="${OBSIDIAN_CLI:-obsidian}"
 VAULT=""; TITLE=""; TARGET=""; CONTENT_FILE=""; INDEX=""
 TYPE="project_insight"; SUMMARY=""; CONTAINS=""; TAGS=""; AMODE="ai_generated"
-FORCE=0; DRY_RUN=0
+FORCE=0; DRY_RUN=0; INDEX_ONLY=0
 TYPE_GIVEN=0
 GFROM_ENTRIES=()
 CONTRIBUTOR_ENTRIES=()
@@ -88,17 +92,26 @@ while [ $# -gt 0 ]; do
       [ -n "${2:-}" ] || die "--graduated-by requires a non-empty display name"
       GRADUATED_BY_ENTRIES+=("$2"); shift 2;;
     --authoring-mode) AMODE="${2:-}"; shift 2;;
+    --index-only|--register-index-only) INDEX_ONLY=1; shift;;
     --force) FORCE=1; shift;;
     --dry-run) DRY_RUN=1; shift;;
-    -h|--help) sed -n '2,55p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
+    -h|--help) sed -n '2,60p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
     *) die "unknown arg: $1";;
   esac
 done
 
 [ -n "$VAULT" ] || die '--vault "<vault name>" is required'
 [ -n "$TITLE" ] || die "--title is required"
-[ -n "$TARGET" ] || die '--target "<folder>" is required'
-[ "${#GFROM_ENTRIES[@]}" -gt 0 ] || die '--graduated-from "<project>|<source path>" is required (at least one; repeatable)'
+if [ "$INDEX_ONLY" -eq 1 ]; then
+  [ -n "$INDEX" ] || die '--index "<folder>/INDEX.md" is required with --index-only'
+  if [ -z "$TARGET" ]; then
+    TARGET="$(dirname "$INDEX")"
+    [ "$TARGET" = "." ] && TARGET=""
+  fi
+else
+  [ -n "$TARGET" ] || die '--target "<folder>" is required'
+  [ "${#GFROM_ENTRIES[@]}" -gt 0 ] || die '--graduated-from "<project>|<source path>" is required (at least one; repeatable)'
+fi
 [ -z "$CONTENT_FILE" ] || [ -f "$CONTENT_FILE" ] || die "content file not found: $CONTENT_FILE"
 command -v "$CLI" >/dev/null 2>&1 || die "$CLI not found — run scripts/obsidian-preflight.sh first"
 command -v jq >/dev/null 2>&1 || die "jq not found"
@@ -107,9 +120,11 @@ if [ "$TYPE_GIVEN" -eq 1 ]; then
     die "--type requires a non-empty, single-line string"
 fi
 
-for e in "${GFROM_ENTRIES[@]}"; do
-  case "$e" in *"|"*) : ;; *) die "--graduated-from entries must be \"<project>|<source path>\", got: $e";; esac
-done
+if [ "${#GFROM_ENTRIES[@]}" -gt 0 ]; then
+  for e in "${GFROM_ENTRIES[@]}"; do
+    case "$e" in *"|"*) : ;; *) die "--graduated-from entries must be \"<project>|<source path>\", got: $e";; esac
+  done
+fi
 
 # --- yaml helpers ---
 yaml_scalar() { jq -Rn --arg s "$1" '$s'; }   # YAML double-quoted scalars are JSON-compatible, so jq's JSON string escaping produces a valid one -- handles embedded newlines/tabs/control chars that the previous hand-rolled sed (backslash+quote only) missed
@@ -156,37 +171,50 @@ done
 
 # --- build target path ---
 SAFE_TITLE="$(printf '%s' "$TITLE" | tr '/\\:*?"<>|' '-')"
-REL_PATH="$TARGET/$SAFE_TITLE.md"
+if [ -n "$TARGET" ]; then
+  REL_PATH="$TARGET/$SAFE_TITLE.md"
+else
+  REL_PATH="$SAFE_TITLE.md"
+fi
 FULL_PATH="$VAULT_PATH/$REL_PATH"
 
-if [ -e "$FULL_PATH" ] && [ "$FORCE" -ne 1 ]; then
-  die "note already exists at '$REL_PATH' — pass --force to overwrite"
-fi
-if [ -e "$FULL_PATH" ] && [ "$TYPE_GIVEN" -eq 0 ]; then
-  die "updating an existing note requires --type with its current value; a type change needs separate confirmation"
-fi
+if [ "$INDEX_ONLY" -eq 1 ]; then
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "DRY-RUN: index-only mode; would not write or modify $FULL_PATH" >&2
+    echo "DRY-RUN: would append a WikiLink line to $VAULT_PATH/$INDEX" >&2
+    jq -nc --arg p "$REL_PATH" '{path:$p, obsidian_url:"<dry-run>"}'
+    exit 0
+  fi
+else
+  if [ -e "$FULL_PATH" ] && [ "$FORCE" -ne 1 ]; then
+    die "note already exists at '$REL_PATH' — pass --force to overwrite"
+  fi
+  if [ -e "$FULL_PATH" ] && [ "$TYPE_GIVEN" -eq 0 ]; then
+    die "updating an existing note requires --type with its current value; a type change needs separate confirmation"
+  fi
 
-# --- assemble frontmatter ---
-CONTAINS_YAML="$(yaml_flow_list "$CONTAINS")"
-TAGS_YAML="$(yaml_flow_list "$TAGS")"
-CONTRIBUTORS_YAML="$(yaml_block_list contributors "${CONTRIBUTOR_ENTRIES[@]:-}")"
-GRADUATED_BY_YAML="$(yaml_block_list graduated_by "${GRADUATED_BY_ENTRIES[@]:-}")"
-GFROM_YAML=""
-for e in "${GFROM_ENTRIES[@]}"; do
-  proj="${e%%|*}"; path="${e#*|}"
-  GFROM_YAML="$GFROM_YAML
+  # --- assemble frontmatter ---
+  CONTAINS_YAML="$(yaml_flow_list "$CONTAINS")"
+  TAGS_YAML="$(yaml_flow_list "$TAGS")"
+  CONTRIBUTORS_YAML="$(yaml_block_list contributors "${CONTRIBUTOR_ENTRIES[@]:-}")"
+  GRADUATED_BY_YAML="$(yaml_block_list graduated_by "${GRADUATED_BY_ENTRIES[@]:-}")"
+  GFROM_YAML=""
+  for e in "${GFROM_ENTRIES[@]:-}"; do
+    [ -z "$e" ] && continue
+    proj="${e%%|*}"; path="${e#*|}"
+    GFROM_YAML="$GFROM_YAML
   - project: $(yaml_scalar "$proj")
     path: $(yaml_scalar "$path")"
-done
-PROVENANCE_YAML=""
-[ -n "$CONTRIBUTORS_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
+  done
+  PROVENANCE_YAML=""
+  [ -n "$CONTRIBUTORS_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
 $CONTRIBUTORS_YAML"
-[ -n "$GRADUATED_BY_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
+  [ -n "$GRADUATED_BY_YAML" ] && PROVENANCE_YAML="$PROVENANCE_YAML
 $GRADUATED_BY_YAML"
 
-TYPE_YAML="$TYPE"
-[ "$TYPE_GIVEN" -eq 0 ] || TYPE_YAML="$(yaml_scalar "$TYPE")"
-FRONTMATTER="---
+  TYPE_YAML="$TYPE"
+  [ "$TYPE_GIVEN" -eq 0 ] || TYPE_YAML="$(yaml_scalar "$TYPE")"
+  FRONTMATTER="---
 type: $TYPE_YAML
 summary: $(yaml_scalar "$SUMMARY")
 contains: $CONTAINS_YAML
@@ -195,33 +223,34 @@ graduated_from:$GFROM_YAML$PROVENANCE_YAML
 authoring_mode: $AMODE
 ---"
 
-BODY=""
-[ -n "$CONTENT_FILE" ] && BODY="$(cat "$CONTENT_FILE")"
+  BODY=""
+  [ -n "$CONTENT_FILE" ] && BODY="$(cat "$CONTENT_FILE")"
 
-if [ "$DRY_RUN" -eq 1 ]; then
-  echo "DRY-RUN: would write $(printf '%s' "$BODY" | wc -l | tr -d ' ') body lines to:" >&2
-  echo "  $FULL_PATH" >&2
-  echo "DRY-RUN: frontmatter:" >&2
-  printf '%s\n' "$FRONTMATTER" | sed 's/^/  /' >&2
-  [ -n "$INDEX" ] && echo "DRY-RUN: would append a WikiLink line to $VAULT_PATH/$INDEX" >&2
-  jq -nc --arg p "$REL_PATH" '{path:$p, obsidian_url:"<dry-run>"}'
-  exit 0
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "DRY-RUN: would write $(printf '%s' "$BODY" | wc -l | tr -d ' ') body lines to:" >&2
+    echo "  $FULL_PATH" >&2
+    echo "DRY-RUN: frontmatter:" >&2
+    printf '%s\n' "$FRONTMATTER" | sed 's/^/  /' >&2
+    [ -n "$INDEX" ] && echo "DRY-RUN: would append a WikiLink line to $VAULT_PATH/$INDEX" >&2
+    jq -nc --arg p "$REL_PATH" '{path:$p, obsidian_url:"<dry-run>"}'
+    exit 0
+  fi
+
+  # --- write atomically: temp file in the same dir, then mv into place ---
+  mkdir -p "$(dirname "$FULL_PATH")" || die "could not create target folder"
+  TMP_FILE="$(mktemp "${FULL_PATH}.XXXXXX")" || die "mktemp failed"
+  trap 'rm -f "$TMP_FILE"' EXIT
+  {
+    printf '%s\n' "$FRONTMATTER"
+    printf '# %s\n' "$TITLE"
+    [ -n "$BODY" ] && printf '\n%s\n' "$BODY"
+  } > "$TMP_FILE"
+  mv "$TMP_FILE" "$FULL_PATH" || die "could not move note into place"
+  trap - EXIT
+
+  # --- read-back verify (direct filesystem, no need to round-trip the flaky CLI) ---
+  [ -f "$FULL_PATH" ] && grep -Fqx "type: $TYPE_YAML" "$FULL_PATH" || echo "warn: read-back did not find the expected frontmatter; verify manually" >&2
 fi
-
-# --- write atomically: temp file in the same dir, then mv into place ---
-mkdir -p "$(dirname "$FULL_PATH")" || die "could not create target folder"
-TMP_FILE="$(mktemp "${FULL_PATH}.XXXXXX")" || die "mktemp failed"
-trap 'rm -f "$TMP_FILE"' EXIT
-{
-  printf '%s\n' "$FRONTMATTER"
-  printf '# %s\n' "$TITLE"
-  [ -n "$BODY" ] && printf '\n%s\n' "$BODY"
-} > "$TMP_FILE"
-mv "$TMP_FILE" "$FULL_PATH" || die "could not move note into place"
-trap - EXIT
-
-# --- read-back verify (direct filesystem, no need to round-trip the flaky CLI) ---
-[ -f "$FULL_PATH" ] && grep -Fqx "type: $TYPE_YAML" "$FULL_PATH" || echo "warn: read-back did not find the expected frontmatter; verify manually" >&2
 
 # --- optional INDEX append (WikiLink — this provider's native format),
 #     idempotent: skip if an entry for this title already exists.

@@ -1,6 +1,6 @@
 # graduation
 
-Human-confirmed promotion of validated project knowledge into an external knowledge base. One-directional: project → knowledge base. The Skill must not silently graduate knowledge.
+Human-confirmed promotion of validated project knowledge into an external knowledge base. One-directional: project → knowledge base. Never silently graduate knowledge.
 
 ## Candidate criteria
 
@@ -15,40 +15,57 @@ A graduation candidate must be:
 
 ## Deferred provider (connect at first graduation)
 
-`graduation.provider: none` in `.cairn/config.yaml` means the project deliberately deferred connecting a knowledge base at init (see `init.md` → Deferred graduation provider). Candidate detection and human confirmation (Flow steps 1–3) work unchanged — only the provider write is blocked. When a confirmed candidate is ready to graduate:
+`graduation.provider: none` in `.cairn/config.yaml` means connecting a knowledge base was deferred at init (`init.md` → Deferred graduation provider). Candidate detection and confirmation (Flow steps 1–3) work unchanged; only the provider write waits. When a confirmed candidate is ready:
 
-1. Collect the provider decisions now — init decisions #3–#4, with cascading defaults applying as usual (a user-level `~/.config/cairn/config.yaml` offers one-key reuse).
-2. Run the chosen provider's preflight (`init.md` → Tool-backed provider preflight) until it reports `ok`.
-3. Freeze the result into `.cairn/config.yaml`, replacing the `provider: none` marker with the standard single- or multi-provider form.
-4. Update `AGENTS.md`: restore the deferred renderings (the three `Init configuration` lines, the consumption-reflex bullet, the distillation bullet) to the standard connected form per `init.md`.
-5. Continue the normal Flow below; fold "connected provider X" into the graduation's own `cairn/LOG.md` entry (or give the connection its own entry if the graduation is then aborted).
+1. Collect provider decisions #3–#4 (`~/.config/cairn/config.yaml` offers one-key reuse).
+2. Run the provider's preflight (`init.md` → Tool-backed provider preflight) until `ok`.
+3. Freeze the result into `.cairn/config.yaml`, replacing `provider: none`.
+4. Update `AGENTS.md` to the connected form per `init.md`.
+5. Continue the Flow below and fold "connected provider X" into the graduation's `cairn/LOG.md` entry (or log the connection alone if aborted).
 
-If the user still declines to connect a provider, stop — graduation cannot proceed without one. The candidate stays recorded (optionally `graduation_status: candidate`) and audit keeps surfacing it.
+If the user still declines, stop: the candidate stays recorded (optionally `graduation_status: candidate`) and audit surfaces it.
 
 ## Flow
 
-1. Propose candidates (the Skill may detect them; audit is the backstop).
-2. The user confirms before anything is written or prepared.
-3. If a project topic has been explicitly judged, optionally record `graduation_status` on the project topic note: `candidate`, `deferred`, or `not_applicable`. Do not add this field to every topic by default.
-4. After human confirmation and before the provider write:
+In an initialized Cairn project, graduation sources are always project topic notes (`cairn/<topic>.md`). When asked what qualifies for graduation or to graduate a project process document (proposal, spec, plan, review, meeting record, retrospective, or in-project experience/convention note), first distill its validated conclusions into `cairn/<topic>.md` (`type: project_topic`) per `maintenance.md` → Topic distillation sources (or point to the existing topic note), then graduate from that topic note (`graduated_from` points to the topic note and may also list the original process document).
+
+1. Propose topic-note candidates (audit is the backstop).
+2. Wait for user confirmation before writing anything.
+3. Optionally set `graduation_status` (`candidate`, `deferred`, or `not_applicable`) on an explicitly judged topic note; do not pre-stamp every topic.
+4. After confirmation and before the provider write:
    1. Resolve the confirmer per `frontmatter.md`; write `graduated_by` on both sides.
-   2. Merge and de-duplicate `contributors` from all source topics when graduating from multiple sources.
-   3. Re-check any Origin quote against the target audience. Carry a safe quote into the knowledge-base note's **Background**; if risk is found, sanitize both copies consistently or omit it from both.
-   4. Treat quote absence as valid and never create a placeholder section.
-5. Prepare the knowledge-base note per `frontmatter.md`, including `type: project_insight` for new knowledge-base notes, `graduated_from`, and non-empty `graduated_by`; record the confirmer on the source. `graduated_to` / `graduated_at` are optional. Check the provider's tag inventory (Obsidian: `obsidian tags counts`) and reuse tags before coining near-synonyms; retrieval recall depends on this discipline (see `provider-interface.md` → Read side).
-6. Record the graduation itself as one `cairn/LOG.md` entry — summary plus a pointer to the knowledge-base note — the same way an audit run logs itself (see `audit.md` → Behavior).
+   2. Merge and de-duplicate `contributors` across source topics.
+   3. Re-check any Origin quote for the target audience; carry a safe quote into **Background** or sanitize/omit on both copies.
+   4. Treat quote absence as valid; never add a placeholder section.
+5. Prepare the knowledge-base note per `frontmatter.md` (`type: project_insight` for new notes, `graduated_from`, non-empty `graduated_by`), and record `graduated_by` plus `graduated_to` / `graduated_at` on the source topic. Check the provider's tag inventory (Obsidian: `obsidian tags counts`) and reuse tags before coining near-synonyms (`provider-interface.md` → Read side).
+6. Record one `cairn/LOG.md` entry — summary plus pointer to the knowledge-base note (`audit.md` → Behavior).
+
+## One-shot graduation (without project init)
+
+For finished, archived, or lightweight folders without Cairn initialized, distill and graduate in one step without creating `.cairn/`, `cairn/`, `AGENTS.md`, or intermediate topic files:
+
+1. **Knowledge-base location**: read `~/.config/cairn/config.yaml`. If absent, ask once for provider, target, and index, and suggest saving them to `~/.config/cairn/config.yaml`.
+2. **Two ways to start**:
+   - **Specify note(s)**: the user names one or more retrospective, summary, or experience notes directly.
+   - **Scan a folder**: the user asks to scan a folder (including archived projects), e.g. “看看这个文件夹里有什么经验可以毕业” or “看看这个文件夹里有什么可以毕业”. Exclude external reference materials via `maintenance.md`'s basic check; skip already-graduated notes (carrying `graduated_to` or already in `INDEX.md`); judge remaining notes by `Candidate criteria` and `maintenance.md`'s experience/convention rules; merge duplicate conclusions across notes into one candidate (listing all contributing files in `graduated_from`); list candidates and wait for confirmation before writing.
+3. **Write and source back-pointers**: after confirmation and preflight `ok`, write the knowledge-base note directly per `Note body structure` (**Background** then **Conclusion**) and `frontmatter.md` (`type: project_insight`, non-empty `graduated_by`, `authoring_mode`), preserving original wording and data.
+   - `graduated_from` points directly to the source note(s) (`project`: folder/project name, `path`: folder-relative path).
+   - Add only `graduated_to` and `graduated_at` to the source note's frontmatter, leaving its body and any existing `type` untouched (included in pre-graduation confirmation, not asked separately).
+   - When the folder has a project record note (e.g. CLIP `【PRO】<project>.md` or `type: project_log`), add `毕业：[[<knowledge-base note title>]]` (or `Graduated: [[<knowledge-base note title>]]`) under today's date (`[[YYYY-MM-DD]]`) in its progress section so the daily note lists it automatically.
 
 ## Note body structure
 
-The knowledge-base note body must open with **Background**, then **Conclusion**, in that order. Sections after those two are not fixed — shape them to what the knowledge itself needs:
+The knowledge-base note body must open with **Background**, then **Conclusion**, in that order:
 
-1. **Background** (required, first) — the situation the knowledge arose from: what problem it was solving, how it was discovered or encountered, why it was needed. Readers need the origin to judge whether the note applies to their case.
+1. **Background** (required, first) — what problem it solved, how it was encountered, and why it was needed, so readers can judge applicability.
 2. **Conclusion** (required, second) — the core claim or solution itself.
-3. **Further sections** (as needed, follow the knowledge) — evidence (reasoning, verified cases, comparisons, counter-examples) when the claim needs backing; a practice guide (procedures, safe patterns, decision tests) when the knowledge is operational; applicability, boundaries, or when-not-to-apply where useful.
+3. **Further sections** (as needed) — evidence (reasoning, verified cases, comparisons, counter-examples), a practice guide (procedures, safe patterns, decision tests), or applicability and boundaries.
 
-Do not open the body with the conclusion. Quick scanning is served by the frontmatter `summary` (a one-line conclusion), so the body does not need to lead with it. Chinese names for common headings are fixed in `zh-glossary.md`.
+Do not open the body with the conclusion; frontmatter `summary` serves quick scanning. Chinese heading names are in `zh-glossary.md`.
 
-When a safe short direct excerpt materially restores the scene, place it inside **Background** in this portable Markdown form:
+### Origin quote
+
+When a safe short direct excerpt materially restores the scene, place it inside **Background**:
 
 ```markdown
 ### Origin quote
@@ -58,15 +75,13 @@ When a safe short direct excerpt materially restores the scene, place it inside 
 > — identity, YYYY-MM-DD, short context
 ```
 
-Preserve direct wording and apply the redaction/scene-summary rules in `maintenance.md`. The subsection is optional; never add an empty heading or placeholder when no suitable quote exists.
+Preserve direct wording and apply `maintenance.md` redaction/scene-summary rules. Omit the subsection when no suitable quote exists.
 
 ## Re-graduation (updating an already-graduated topic)
 
-Read the target's type and preserve it, including `knowledge_note`, Chinese or custom values. A type migration needs its own location/old/new confirmation; declining it still permits the confirmed content update. Skill or configuration updates do not authorize migration (see `frontmatter.md` and `upgrade.md`).
+Read and preserve the target's type, including `knowledge_note`, Chinese, or custom values. A type migration needs separate location/old/new confirmation; declining it still permits the confirmed content update (`frontmatter.md`, `upgrade.md`).
 
-A graduated project topic remains the project's local current truth and can evolve in place. “One-directional” means project edits never silently overwrite the knowledge-base note; it does not freeze the source.
-
-When a topic with `graduated_to` gains substantive new knowledge, propose re-graduation through the same human-confirmed flow and the adapter's update mode. Target the stored provider identifier, update `graduated_at`, and union the current confirmer into `graduated_by` on both sides without duplicates. Resolve that union before calling the adapter: it writes the supplied current truth, not an inferred identity merge. LOG records event, time, target and confirmer; frontmatter is an identity list, not event history. Until re-graduation, the knowledge-base note remains cross-project current truth but may lag the latest local state; audit flags this. Replacement requires confirmation just as the first graduation does.
+A graduated project topic remains local current truth and can evolve in place; “one-directional” means project edits never silently overwrite the knowledge-base note. When a topic with `graduated_to` gains substantive new knowledge, propose re-graduation via the adapter's update mode: target the stored identifier, update `graduated_at`, and union the confirmer into `graduated_by` on both sides without duplicates before calling the adapter. LOG records the event; audit flags lagging notes.
 
 ## Provider adapter constraints
 
@@ -82,7 +97,7 @@ Provider mechanics live in one reference per provider. Before any write, read th
 | `lark-wiki` | [`graduation/lark-wiki.md`](graduation/lark-wiki.md) | `scripts/lark-preflight.sh` | `scripts/lark-wiki-graduate.sh` |
 | `notion` | [`graduation/notion.md`](graduation/notion.md) | `scripts/notion-preflight.sh` | `scripts/notion-graduate.sh` |
 
-The write-adapter column pins each provider's primary single-note entry; the provider reference enumerates that provider's complete script set. If the configured provider is `none`, stay in the Deferred provider flow above until one is chosen. If the provider value is unsupported, its reference is missing or unread, or the named preflight has not returned `ok`, stop before any provider-side write and report the error. An absent preflight result is a blocking state, not permission to reconstruct provider mechanics from memory; a dry-run does not substitute for this gate before a later real write.
+The write-adapter column pins each provider's primary entry; the provider reference lists its complete script set. If the configured provider is `none`, use the Deferred provider flow above. If the provider is unsupported, its reference is unread, or the named preflight has not returned `ok`, stop before any write and report the error. An absent preflight result is a blocking state; a dry-run does not substitute for this gate before a real write.
 
 ### Lark / Feishu wiki adapter (worked example)
 
@@ -98,10 +113,9 @@ Moved to [`graduation/obsidian.md`](graduation/obsidian.md).
 
 ## Knowledge-base links
 
-When the target provider supports wiki-style links, add links only when they are useful in context. Do not add a generic "Related" list just to connect notes.
+When the target provider supports wiki-style links, add links only when useful in context; do not add a generic "Related" list.
 
-- Add a wiki link when a specific sentence or paragraph depends on, explains, contrasts with, or operationalizes another knowledge note.
-- Put the link inside that local context, with surrounding text that makes the reason for the connection clear.
-- Do not link merely because two notes share a tag, came from the same project, or were graduated in the same batch.
+- Add a wiki link when a sentence depends on, explains, contrasts with, or operationalizes another note, with surrounding text making the connection clear.
+- Do not link merely because two notes share a tag, project, or batch.
 
-After graduation the knowledge-base note is the cross-project current truth and is not rewritten back from the project. The project topic note remains the current truth within this project's local context (and a historical record of how the knowledge was reached); the two layers do not compete.
+After graduation the knowledge-base note is cross-project current truth; the project topic note stays local current truth.

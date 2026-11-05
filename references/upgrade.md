@@ -2,7 +2,7 @@
 
 Bring an already-initialized project instance up to the current skill spec, or measure how far it has drifted. `cairn init` freezes the spec of its day into the project (AGENTS.md wording, config shape, LOG conventions); the skill keeps evolving, and nothing updates the frozen copy automatically. This reference is both the detection checklist and the execution manual for closing that gap.
 
-**Current spec date: 2026-10-22**
+**Current spec date: 2026-11-05**
 
 ## Two layers of "upgrade" — keep them apart
 
@@ -127,3 +127,17 @@ Historical release: new topics and graduation notes once shared a selected type.
 - **Detect**: inspect project `cairn.note_type` and personal `defaults.note_type` only to report optional cleanup; they are now ignored and not invalid. Locate historical-note candidates within the project's configured knowledge directory and actual provider targets, following `graduated_to` and `graduated_from` pointers. Missing pointers require verified provenance; never scan and relabel an entire knowledge base or create a parallel directory from a stale target.
 - **Fix**: new topics use `project_topic`, new graduation notes use `project_insight`, independent of language or old defaults. A source topic remains a project topic after graduation and can keep evolving. Preserve old configuration by default; separately list and confirm any field cleanup. Separately list each note's location, layer, old type and proposed type (project topic → `project_topic`; graduated experience → `project_insight`). On confirmation, back up, change only type, preserve body/other fields and independently reread. Declining either operation is valid and must not block normal maintenance or a confirmed re-graduation: preserve the target's prior type. Audit reports opportunities, not errors. Do not run the superseded 10-14 Fix even for much older instances.
 - **Safety**: `confirm` (configuration cleanup and historical-note migration are separate, optional approvals; installing this skill grants neither).
+
+### 2026-11-05 — process documents as topic distillation sources and basic external-material check
+
+- **Affects**: skill-side distillation and audit rules (`maintenance.md`, `graduation.md`, `audit.md`); already-initialized project instances require no structural or configuration migration.
+- **Detect**: during `cairn audit` in an initialized project, check whether project process documents (proposals, implementation docs, requirement docs, review records, meeting minutes, retrospectives, Superpowers/grill-with-docs specs and plans, or in-project experience and convention notes without `type`) hold stable verified conclusions not yet distilled into `cairn/<topic>.md`, or whether external reference material placed outside `cairn/Reference/` is being treated as a conclusion source rather than verification basis.
+- **Fix**: distill verified conclusions from process documents into `cairn/<topic>.md` (`type: project_topic`) with source links while leaving process documents in place without adding `type`; treat external materials as verification basis only and optionally suggest moving them to `cairn/Reference/` without moving them automatically. No migration of existing `AGENTS.md` or `.cairn/config.yaml` is needed.
+- **Safety**: `confirm` (creating/updating topic notes from historical process docs or moving files requires user confirmation).
+
+### 2026-11-05 — one-shot graduation without init and standalone knowledge-base audit
+
+- **Affects**: `user environment` (`~/.config/cairn/config.yaml` reused for uninitialized one-shot graduation) and `knowledge-base notes` (standalone knowledge-base audit and `obsidian-graduate.sh --index-only`). Existing initialized project instances require no migration.
+- **Detect**: optional standalone knowledge-base audit on an Obsidian knowledge-base folder checks for notes not yet registered in `INDEX.md`, or notes missing `type` / `summary` or not opening with **Background** before **Conclusion** (manually written notes without `graduated_from` or `graduated_by` are valid and not flagged).
+- **Fix**: register unindexed Obsidian notes via `scripts/obsidian-graduate.sh --index-only`; propose missing `type` / `summary` or **Background**-first restructuring and apply only after user confirmation, without fabricating `graduated_from` or `graduated_by`.
+- **Safety**: `confirm` (modifying knowledge-base notes requires user confirmation).
