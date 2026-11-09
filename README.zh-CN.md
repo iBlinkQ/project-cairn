@@ -65,15 +65,17 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-
 
 ## 三步开始使用
 
-1. 在项目里对 Agent 说“初始化 Project Cairn”。它会询问项目定位、git 策略和历史迁移方式，再生成项目规则与配置。初始化时可以暂不连接知识库，等第一次真正需要毕业知识时再配置。
+1. 在项目里对 Agent 说“初始化 Project Cairn”。它会询问项目定位、git 策略和历史迁移方式，再生成项目规则与配置。初始化时可以暂不连接知识库，等第一次真正需要将经验入库时再配置。
 2. 照常推进项目。Agent 根据 `AGENTS.md`，在正常协作回合里维护进展和当前结论，不需要单独运行一个记录服务。
-3. 当某条经验对其他项目也有用时，让 Agent 提出毕业候选。你确认范围后，它才会写入知识库。以后遇到相近问题，新项目先检索，再把真正用到的知识指针记进 `cairn/Cited.md`。
+3. 当某条经验对其他项目也有用时，让 Agent 提出待入库经验。你确认范围后，它才会写入知识库。以后遇到相近问题，新项目先检索，再把真正用到的知识指针记进 `cairn/Cited.md`。
 
 如果是正在进行的项目或已经结束的老项目：
 
 - **正在进行的项目**：完成初始化后，可发送“整理已有经验”，Agent 会查找项目中已有的方案、会议纪要、复盘及经验/规范笔记，梳理当前进度与仍然有效的结论，完善 `cairn/ROADMAP.md` 并沉淀主题文档，原有资料保持不变。
-- **已结束的老项目或未初始化的文件夹（一次性毕业）**：无须初始化，也不生成 `.cairn/` 或 `cairn/` 文件夹。打开文件夹发送“看看这个文件夹里有什么经验可以毕业”（或直接指定某篇复盘、总结、经验文档发起毕业），Agent 会读取用户级配置 `~/.config/cairn/config.yaml`，自动排除外部参考资料，筛选出有复用价值的经验并列出清单；人工确认后，直接写成 `type: project_insight` 笔记毕业到知识库并更新 `INDEX.md`，原笔记只加 `graduated_to`、`graduated_at` 两个回指字段（若文件夹有项目记录笔记，则在当天进展下加一行 `毕业：[[知识库笔记]]`）。
+- **已结束的老项目或未初始化的文件夹（直接整理入库）**：无须初始化，也不生成 `.cairn/` 或 `cairn/` 文件夹。打开文件夹发送“看看这个文件夹里，有哪些经验值得存进知识库”（或直接指定某篇复盘、总结、经验文档发起入库），Agent 会读取用户级配置 `~/.config/cairn/config.yaml`，自动排除外部参考资料，筛选出有复用价值的经验并列出清单；人工确认后，直接写成 `type: project_insight` 笔记存入知识库并更新 `INDEX.md`，原笔记只加 `graduated_to`、`graduated_at` 两个回指字段（若文件夹有项目记录笔记，则在当天进展下加一行 `经验入库：[[知识库笔记]]`）。
 - **项目经验库体检**：不需要初始化项目，直接对 Obsidian 项目经验库文件夹执行体检——补登记尚未进入 `INDEX.md` 的手写笔记，并对缺少 `type` 或 `summary`、正文不是先写“背景”后写“结论”的笔记给出修改建议（确认后再改；手动写的笔记没有 `graduated_from` 不算错、不提示）。
+
+旧版中的“知识毕业”“一次性毕业”等说法仍可使用，分别对应“经验入库”“直接整理入库”。英文名称、脚本与笔记字段保持兼容。
 
 ## 两侧如何配合
 
@@ -94,11 +96,11 @@ Project Cairn 把信息分在两侧，而不是把所有内容塞进一个不断
 2. Agent 正常推进排查，并把关键进展记入 `LOG.md`。
 3. 问题解决并验证后，当前结论写入对应的主题文档。
 4. 如果方案、spec、plan、评审、会议纪要、复盘，或项目里自己写、经 AI 整理的经验和规范笔记中有稳定结论，Agent 只把结论提取到主题文档，过程文档留在原处、不要求带 `type`。
-5. Agent 判断这条经验可能跨项目复用，向你提出毕业候选。
+5. Agent 判断这条经验可能跨项目复用，向你提出待入库经验。
 6. 你确认后，Agent 去除项目偶然细节，补齐背景、适用条件和来源，再写入知识库并更新索引。
 7. 新项目遇到相近问题时，先检索知识库。只有真正影响了产出的笔记，才在 `Cited.md` 留下指针。
 
-交互式页面把完整过程展开为 T0 到 T8 九个步骤，包括路线图维护、定期审查和再次毕业：[查看完整流程](https://iblinkq.github.io/project-cairn/)。
+交互式页面把完整过程展开为 T0 到 T8 九个步骤，包括路线图维护、定期审查和更新已入库经验：[查看完整流程](https://iblinkq.github.io/project-cairn/)。
 
 ## 它会留下什么
 
@@ -116,23 +118,23 @@ Project Cairn 不预建一堆空模板。除了初始化所需的核心文件，
 
 被代码或工作流直接消费的 schema、配置和工程契约仍留在代码树里。Cairn 保存的是关于它们的知识，比如为什么这样设计、比较过哪些方案、实施时踩过什么坑。
 
-主题文档使用 Markdown 与 YAML frontmatter，至少包含一个 `type` 字段，对齐 Google [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) 的最小约定。这不等于完整实现 OKF bundle。新建项目主题固定使用 `project_topic`，新建毕业笔记固定使用 `project_insight`，初始化不询问 type。历史笔记保留原类型，迁移须单独确认。详见 [frontmatter](references/frontmatter.md)。
+主题文档使用 Markdown 与 YAML frontmatter，至少包含一个 `type` 字段，对齐 Google [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) 的最小约定。这不等于完整实现 OKF bundle。新建项目主题固定使用 `project_topic`，新建入库笔记固定使用 `project_insight`，初始化不询问 type。历史笔记保留原类型，迁移须单独确认。详见 [frontmatter](references/frontmatter.md)。
 
-每篇毕业笔记还会记录来源和参与者，包括 `graduated_from`、`contributors`、`graduated_by` 与 `authoring_mode`，方便回到形成结论的项目和材料。
+每篇入库笔记还会记录来源和参与者，包括 `graduated_from`、`contributors`、`graduated_by` 与 `authoring_mode`，方便回到形成结论的项目和材料。
 
 ## 自动化边界
 
 - Project Cairn 不在后台监听，也不会在会话结束后自行运行。
 - 日常记录发生在你和 Agent 正常协作的回合中，由项目里的 `AGENTS.md` 规则驱动。
-- Agent 可以提出知识毕业候选，但没有你的确认，不会写入长期知识库。
-- 初始化时可以暂不连接 Obsidian、Notion 或飞书 / Lark，等第一次真正需要毕业知识时再配置。
+- Agent 可以提出待入库经验，但没有你的确认，不会写入长期知识库。
+- 初始化时可以暂不连接 Obsidian、Notion 或飞书 / Lark，等第一次真正需要将经验入库时再配置。
 - 审查负责发现矛盾、过期结论和遗漏，不会替你擅自修改重要判断。
 
-毕业的写入方向是项目侧到知识库侧。新项目复用知识时先检索，再在 `Cited.md` 留指针，不复制知识库正文。这是显式消费，不是两个存储之间的后台同步。
+入库的写入方向是项目侧到知识库侧。新项目复用知识时先检索，再在 `Cited.md` 留指针，不复制知识库正文。这是显式消费，不是两个存储之间的后台同步。
 
 ## 已验证的知识库
 
-Project Cairn 已验证三种毕业目标：
+Project Cairn 已验证三种入库目标：
 
 - **Obsidian**：写入 vault 相对路径，以 `INDEX.md` 维护入口，用 WikiLink 连接笔记。
 - **Notion**：写入数据库，数据库同时承担容器和索引，属性列承接结构化元数据。
@@ -153,7 +155,7 @@ Project Cairn 不是用来替代所有相关工具的：
 | 工具或方法 | 它主要解决什么 | 与 Cairn 的关系 |
 |---|---|---|
 | [LLM Wiki](https://github.com/karpathy) | 把读过的原始资料整理成 wiki | LLM Wiki 偏资料知识化，Cairn 偏项目经验知识化 |
-| [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) | 让知识文件可以被人和机器交换 | OKF 是格式方向，Cairn 管形成、维护、毕业和复用 |
+| [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) | 让知识文件可以被人和机器交换 | OKF 是格式方向，Cairn 管形成、维护、入库和复用 |
 | Agent Memory | 延续某个 Agent 的偏好和工作上下文 | Memory 管 Agent 的连续性，Cairn 管项目知识的连续性 |
 | [superpowers](https://github.com/obra/superpowers) | 用 spec、plan、测试和评审把工作做稳 | superpowers 管过程，Cairn 从过程中留下稳定结论 |
 
@@ -165,8 +167,8 @@ Project Cairn 不是用来替代所有相关工具的：
 |---|---|
 | `references/init.md` | 初始化或补建 Project Cairn |
 | `references/maintenance.md` | 维护 `LOG.md`、`ROADMAP.md` 和主题文档（含从过程文档提取结论） |
-| `references/graduation.md` | 判断、蒸馏并写入可复用知识（含不初始化的一次性毕业） |
-| `references/graduation/` | 每个 provider 一份的毕业执行路径（Lark wiki、Notion、Obsidian） |
+| `references/graduation.md` | 判断、蒸馏并写入可复用知识（含不初始化的直接整理入库） |
+| `references/graduation/` | 每个 provider 一份的入库执行路径（Lark wiki、Notion、Obsidian） |
 | `references/provider-interface.md` | provider adapter 的行为契约 |
 | `references/consume.md` | 检索、使用并引用外部知识 |
 | `references/audit.md` | 找出项目漂移、矛盾和缺失记录，以及对项目经验库做体检 |

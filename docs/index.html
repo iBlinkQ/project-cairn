@@ -224,7 +224,7 @@
   .wiki .wt{font-weight:700; font-size:13px; margin-bottom:5px; color:var(--ink);}
   .wiki .fm{ font-size:10px; color:#8a7340; background:rgba(190,160,100,.16); border-radius:2px; padding:2px 5px; margin-bottom:5px; display:inline-block; letter-spacing:.02em; }
   .wiki .lnk{color:var(--accent); font-weight:600;}
-  /* ghost = 未毕业占位：不露笔记内容，只显示灰底骨架条 */
+  /* ghost = 未入库占位：不露笔记内容，只显示灰底骨架条 */
   .wiki.ghost{
     border-style:dashed; background:rgba(205,192,168,.22); box-shadow:none;
     pointer-events:none; cursor:default;
@@ -830,7 +830,7 @@
 
     <div class="vaxis bottom">
       <div class="vwrap">
-        <span class="vlab" data-i18n="inAxisGrad">验证过的经验<b>毕业</b>进知识库<br>graduate</span>
+        <span class="vlab" data-i18n="inAxisGrad">验证过的经验<b>入库</b>，供后续项目复用<br>graduate</span>
         <div class="vline down"><i class="vdot"></i></div>
       </div>
       <div class="vwrap">
@@ -841,7 +841,7 @@
 
     <div class="ient kb">
       <div class="etitle" data-i18n="inKbTitle">🗄 知识库</div>
-      <div class="esub" data-i18n="inKbSub">毕业知识的长期归宿 · 按各平台结构生成索引与主题笔记</div>
+      <div class="esub" data-i18n="inKbSub">可复用经验的长期归宿 · 按各平台结构生成索引与主题笔记</div>
       <div class="chips">
         <span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="fill:#7C3AED"><path d="M19.355 18.538a68.967 68.959 0 0 0 1.858-2.954.81.81 0 0 0-.062-.9c-.516-.685-1.504-2.075-2.042-3.362-.553-1.321-.636-3.375-.64-4.377a1.707 1.707 0 0 0-.358-1.05l-3.198-4.064a3.744 3.744 0 0 1-.076.543c-.106.503-.307 1.004-.536 1.5-.134.29-.29.6-.446.914l-.31.626c-.516 1.068-.997 2.227-1.132 3.59-.124 1.26.046 2.73.815 4.481.128.011.257.025.386.044a6.363 6.363 0 0 1 3.326 1.505c.916.79 1.744 1.922 2.415 3.5zM8.199 22.569c.073.012.146.02.22.02.78.024 2.095.092 3.16.29.87.16 2.593.64 4.01 1.055 1.083.316 2.198-.548 2.355-1.664.114-.814.33-1.735.725-2.58l-.01.005c-.67-1.87-1.522-3.078-2.416-3.849a5.295 5.295 0 0 0-2.778-1.257c-1.54-.216-2.952.19-3.84.45.532 2.218.368 4.829-1.425 7.531zM5.533 9.938c-.023.1-.056.197-.098.29L2.82 16.059a1.602 1.602 0 0 0 .313 1.772l4.116 4.24c2.103-3.101 1.796-6.02.836-8.3-.728-1.73-1.832-3.081-2.55-3.831zM9.32 14.01c.615-.183 1.606-.465 2.745-.534-.683-1.725-.848-3.233-.716-4.577.154-1.552.7-2.847 1.235-3.95.113-.235.223-.454.328-.664.149-.297.288-.577.419-.86.217-.47.379-.885.46-1.27.08-.38.08-.72-.014-1.043-.095-.325-.297-.675-.68-1.06a1.6 1.6 0 0 0-1.475.36l-4.95 4.452a1.602 1.602 0 0 0-.513.952l-.427 2.83c.672.59 2.328 2.316 3.335 4.711.09.21.175.43.253.653z"/></svg>Obsidian</span>
         <span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="fill:#000000"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg>Notion</span>
@@ -929,7 +929,7 @@
       <div class="arrow" id="a-grad">
         <span class="lab" data-i18n="aGradLab">graduate 蒸馏</span>
         <i class="shaft"></i><i class="flowdot" style="display:none"></i>
-        <div class="note" data-i18n="aGradNote">单向毕业 · 知识库侧 graduated_from · 项目侧 graduated_to 推荐</div>
+        <div class="note" data-i18n="aGradNote">单向入库 · 知识库侧 graduated_from · 项目侧 graduated_to 推荐</div>
       </div>
       <div class="arrow back dashed" id="a-pull">
         <span class="lab" data-i18n="aPullLab">先查 INDEX 拉取</span>
@@ -993,7 +993,7 @@
   </div>
   <div class="ribbon" data-i18n="ribbon">冲突仲裁优先级：<b class="r2">知识专题文档</b> ＞ <b class="r3">LOG 历史记录</b>　（规则类以 AGENTS.md 为准）</div>
 
-  <footer data-i18n="footer">—— 触发式创建 · 信息流动 · 单向毕业 · Provider 抽象 ——</footer>
+  <footer data-i18n="footer">—— 触发式创建 · 信息流动 · 单向入库 · Provider 抽象 ——</footer>
   </div><!-- /viewDetail -->
 
   <!-- ================= Skill CTA ================= -->
@@ -1095,9 +1095,9 @@ const DETAILS = {
   topic:{name:"cairn/<主题>.md", cat:"知识 · 当前真相", color:"var(--know)", rows:[
     ["创建触发","第一个需持续维护的结论域出现时"],
     ["维护","按主题原地更新；修订在 LOG 留一笔"],
-    ["最小元数据","frontmatter 至少要有非空 <code>type</code>（笔记身份：新主题文档 <code>project_topic</code>，新毕业笔记 <code>project_insight</code>；历史值保留）；推荐 summary / tags / status"],
+    ["最小元数据","frontmatter 至少要有非空 <code>type</code>（笔记身份：新主题文档 <code>project_topic</code>，新入库笔记 <code>project_insight</code>；历史值保留）；推荐 summary / tags / status"],
     ["踩坑并入","用受控多值 <code>contains: decision / experience / lesson / procedure</code> 等标记内容成分，不再单独建 PITFALLS.md"],
-    ["去向","验证后经 cairn graduate 蒸馏毕业进知识库；项目侧 <code>graduated_to</code> / <code>graduated_at</code> 第一版仅推荐"]]},
+    ["去向","验证后经 cairn graduate 提炼后存入知识库；项目侧 <code>graduated_to</code> / <code>graduated_at</code> 第一版仅推荐"]]},
   ref:{name:"cairn/Reference/", cat:"外部输入 · Raw Sources", color:"var(--raw)", rows:[
     ["创建触发","收到第一份外部材料时"],
     ["纪律","只进不改；是查询输入，不是结论"],
@@ -1110,13 +1110,13 @@ const DETAILS = {
   index:{name:"INDEX.md", cat:"元规则 · 唯一全局索引", color:"var(--rule)", rows:[
     ["定位","知识库检索入口；项目层不另建索引（AGENTS.md 即索引）"],
     ["格式","每篇笔记一行：标题 + 一句话钩子"],
-    ["排序","无时序承诺——新毕业追加、再次毕业不置顶、行原地维护；时序归 LOG 与 <code>graduated_at</code>"],
+    ["排序","无时序承诺——新入库追加、更新已入库经验不置顶、行原地维护；时序归 LOG 与 <code>graduated_at</code>"],
     ["渐进披露","当项目层 cairn/ 专题膨胀到几十篇，可触发式创建局部 index.md"],
     ["扩展","数百篇后『扫描换查询』：用 provider 原生查询原语（结构化 / 标签 / 全文 / 图谱）组成检索漏斗，索引模式不变"]]},
   w1:{name:"《消息机器人对接》", cat:"知识库笔记 · 蒸馏自尽调项目", color:"var(--know)", rows:[
-    ["强制溯源","知识库侧 frontmatter 写 <code>graduated_from</code>（<code>{project, path}</code> 列表记来源）；<code>contributors</code> 记实质参与者、<code>graduated_by</code> 记毕业确认者（均为非空列表）"],
+    ["强制溯源","知识库侧 frontmatter 写 <code>graduated_from</code>（<code>{project, path}</code> 列表记来源）；<code>contributors</code> 记实质参与者、<code>graduated_by</code> 记入库确认者（均为非空列表）"],
     ["格式","正文以『背景 → 结论』两节开篇，后续小节按知识本身需要组织；快速扫读由 frontmatter <code>summary</code> 承担；可选『原话引述』小节"],
-    ["演化","后续项目有实质新进展 → 项目侧沉淀后<b>再次毕业</b>升级本篇：<code>graduated_from</code> 追加多来源、<code>graduated_at</code> 刷新（人工确认触发，不自动同步）"]]},
+    ["演化","后续项目有实质新进展 → 项目侧沉淀后<b>更新已入库经验</b>，升级本篇：<code>graduated_from</code> 追加多来源、<code>graduated_at</code> 刷新（人工确认触发，不自动同步）"]]},
   w2:{name:"《前端框架选型：React vs Vue》", cat:"知识库笔记 · 蒸馏自电商后台项目", color:"var(--know)", rows:[
     ["决策","中大型后台系统选 React：团队 TypeScript 经验更足、周边组件生态更全，长期维护成本更低"],
     ["权衡","Vue 上手更快、模板语法更直观，小型项目或团队 TS 基础弱时仍是更优选择"],
@@ -1140,7 +1140,7 @@ const STEPS = [
   {k:"T0", lab:"项目启动", stamp:"cairn init", title:"脚手架：根级门面 + 空 cairn/",
    trig:"新项目创建", files:["f-agents","f-claude","f-log"], glow:["f-agents"],
    body:"<b>cairn init</b> 一次性搭好项目知识层的最小骨架：根级 <b>AGENTS.md</b>（项目定位 / 阅读顺序 / 分工表 / 仲裁规则）+ 一行 <b>CLAUDE.md</b> stub + 空壳 <b>cairn/LOG.md</b>。亮点是<b>触发式创建</b>——第一分钟只建这三件必需品，其余文件等信号出现才诞生，不留空壳模板；一份 AGENTS.md 同时服务 Claude Code / Codex 等各家 Agent。",
-   side:"由你触发：对 Agent 说『初始化 Project Cairn』。init 是交互式的：Agent 依次和你确认项目定位、Git 提交策略、毕业目标（Obsidian / Notion / 飞书）等，然后自动写好全部文件。已有历史的旧项目也能随时补挂。"},
+   side:"由你触发：对 Agent 说『初始化 Project Cairn』。init 是交互式的：Agent 依次和你确认项目定位、Git 提交策略、入库目标（Obsidian / Notion / 飞书）等，然后自动写好全部文件。已有历史的旧项目也能随时补挂。"},
   {k:"T1", lab:"首次推进", stamp:"log", title:"cairn/LOG.md 写下第一条",
    trig:"第一次实质推进", files:[], glow:["f-log"], flows:[["f-agents","f-log"]],
    body:"<b>cairn/LOG.md</b> 是项目的时序日志，回答『发生了什么』：倒序排列，最新在最上。亮点：<b>单条 ≤ 20 行、只写摘要 + 指针</b>——结论沉入主题文档（T4），日志保持轻快，随时可供人与 Agent 扫读。<a href='https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing' target='_blank' style='color:var(--accent);'>OKF</a> 同样把 <code>log.md</code> 列为保留文件：时序记录是人机共读知识库的标配。",
@@ -1161,14 +1161,14 @@ const STEPS = [
    trig:"设计 / 评审 / 实现过程形成稳定结论", files:[], glow:["f-log","f-topic"], flows:[["f-proc","f-log"],["f-proc","f-topic"]],
    body:"这是与 T4 并行的<b>过程文档渠道</b>：Cairn 也能从项目中的其他过程文档里汲取知识——例如 <a href='https://github.com/obra/superpowers' target='_blank' style='color:var(--accent);'>superpowers</a> 的设计文档 / 实施计划、人工评审意见、会议讨论、实现复盘。两条渠道汇入同一批主题文档，与 superpowers 等过程类 skill 互补：<b>可靠完成工作 + 沉淀工作成果</b>，1+1&gt;2。",
    side:"Agent 自动执行：过程中的结论稳定 / 验证通过时，在 LOG 留一行指针，把结论蒸馏进对应主题文档。只取结论——过程文档本身留在原处，不搬进 cairn/。"},
-  {k:"T6", lab:"知识毕业", stamp:"cairn graduate", title:"graduate：经验蒸馏进知识库",
+  {k:"T6", lab:"经验入库", stamp:"cairn graduate", title:"graduate：经验蒸馏进知识库",
    trig:"知识被验证的那一刻", files:["f-index","w1","w2","w3","w4","w5"], glow:["f-topic"], arrows:["a-grad"],
    body:"<b>graduate</b> 把项目里验证过的经验蒸馏成原子化主题笔记，写入你的知识库（Obsidian / Notion / 飞书 Wiki 均已验证，可插拔更多目标），并更新 <b>INDEX.md</b>。亮点是完整溯源：<code>graduated_from</code> 记录来源项目与源文档，<code>contributors</code> / <code>graduated_by</code> 记录参与者与确认者——每条知识都查得到出处。知识库层的笔记形态与 <a href='https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f' target='_blank' style='color:var(--accent);'>Karpathy LLM-wiki</a> 一致：原子化、双链、frontmatter 可检索。",
-   side:"Agent 识别时机并发起，<b>写入知识库前由你确认</b>。时机是『知识被验证的那一刻』：坑解决了、方案跑通了、且换个项目也成立——当场毕业，不等项目收尾。已毕业主题有实质新进展 → 再次毕业，升级同一篇笔记。"},
+   side:"Agent 识别时机并发起，<b>写入知识库前由你确认</b>。时机是『知识被验证的那一刻』：坑解决了、方案跑通了、且换个项目也成立——当场入库，不等项目收尾。已入库主题有实质新进展 → 更新已入库经验，升级同一篇笔记。"},
   {k:"T7", lab:"定期体检", stamp:"cairn audit", title:"audit：结构与知识体检",
    trig:"定期 / 手动", files:[], glow:["f-log","f-topic"], arrows:[], audit:true,
-   body:"<b>audit</b> 给项目层和知识库层做体检：矛盾结论、断链、超载日志、缺失溯源、过期毕业、实例漂移，一次扫出来。思路承自 <a href='https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f' target='_blank' style='color:var(--accent);'>Karpathy LLM-wiki</a> 的 Lint 与 <a href='https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing' target='_blank' style='color:var(--accent);'>OKF</a> 的 conformance：结构只做最小强约束，其余给 warning——轻规范，不做重型 schema。",
-   side:"由你触发：定期或想起来时，对 Agent 说『audit 一下项目知识』。Agent 扫出问题清单，哪些该修、哪些该毕业、哪些该丢由你拍板——audit 只负责发现，不自动改写。"},
+   body:"<b>audit</b> 给项目层和知识库层做体检：矛盾结论、断链、超载日志、缺失溯源、入库内容过期、实例漂移，一次扫出来。思路承自 <a href='https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f' target='_blank' style='color:var(--accent);'>Karpathy LLM-wiki</a> 的 Lint 与 <a href='https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing' target='_blank' style='color:var(--accent);'>OKF</a> 的 conformance：结构只做最小强约束，其余给 warning——轻规范，不做重型 schema。",
+   side:"由你触发：定期或想起来时，对 Agent 说『audit 一下项目知识』。Agent 扫出问题清单，哪些该修、哪些该入库、哪些该丢由你拍板——audit 只负责发现，不自动改写。"},
   {k:"T8", lab:"知识回流", stamp:"consume", title:"consume：先查是否已有人踩过",
    trig:"这件工作产生或依赖的结论，可能早被验证过", files:["f-cited"], glow:["f-index","f-cited"], arrows:["a-pull"],
    body:"<b>consume</b> 让过去的经验在新工作里直接派上用场：动手前先查——本项目 <b>cairn/</b> 专题文档优先，再查知识库 <b>INDEX.md</b>，说不定有人已经踩过这个坑。真正用上了的笔记，才在 <b>cairn/Cited.md</b> 记一条指针。闭环就此形成：项目 A 的经验 → 知识库 → 项目 B 的 Cited.md。",
@@ -1192,10 +1192,10 @@ const I18N = {
   inKnowDec:{zh:"关键决策", en:"Key decisions"},
   inKnowExp:{zh:"探索成果", en:"Exploration findings"},
   inKnowIns:{zh:"灵感洞见", en:"Sparks of insight"},
-  inAxisGrad:{zh:"验证过的经验<b>毕业</b>进知识库<br>graduate", en:"Validated lessons <b>graduate</b> into the vault<br>graduate"},
+  inAxisGrad:{zh:"验证过的经验<b>入库</b>，供后续项目复用<br>graduate", en:"Validated lessons <b>graduate</b> into the vault<br>graduate"},
   inAxisPull:{zh:"新项目先查索引再复用<br>consume", en:"New projects check the index, then reuse<br>consume"},
   inKbTitle:{zh:"🗄 知识库", en:"🗄 KNOWLEDGE BASE"},
-  inKbSub:{zh:"毕业知识的长期归宿 · 按各平台结构生成索引与主题笔记", en:"The long-term home of graduated knowledge · index & topic notes follow each platform's structure"},
+  inKbSub:{zh:"可复用经验的长期归宿 · 按各平台结构生成索引与主题笔记", en:"The long-term home of graduated knowledge · index & topic notes follow each platform's structure"},
   inKbLark:{zh:"飞书", en:"Lark"},
   inKbMore:{zh:"可对接更多…", en:"more integrations to come…"},
   introCap:{zh:"一条经验的旅程：在 Agent 里做事 → 经 Project Cairn 沉淀 → 进知识库跨项目复用", en:"A lesson's journey: work inside an agent → distilled by Project Cairn → reused across projects from the knowledge base"},
@@ -1220,7 +1220,7 @@ const I18N = {
   fCitedRole:{zh:"知识库引用清单 · 只挂指针（哪篇 / 为什么 / 怎么用 + 回链）· 不存副本", en:"Vault citation list · pointers only (which / why / how + back-link) · no copies stored"},
   bCite:{zh:"引用", en:"Cited"},
   aGradLab:{zh:"graduate 蒸馏", en:"graduate · distill"},
-  aGradNote:{zh:"单向毕业 · 知识库侧 graduated_from · 项目侧 graduated_to 推荐", en:"One-way graduation · vault-side graduated_from · project-side graduated_to recommended"},
+  aGradNote:{zh:"单向入库 · 知识库侧 graduated_from · 项目侧 graduated_to 推荐", en:"One-way graduation · vault-side graduated_from · project-side graduated_to recommended"},
   aPullLab:{zh:"先查 INDEX 拉取", en:"check INDEX, then pull"},
   aPullNote:{zh:"落 Cited.md · 只挂指针 · 闭环回流", en:"lands in Cited.md · pointers only · closed loop"},
   vaultTab:{zh:"🗄 知识库 · Obsidian / Notion / 飞书", en:"🗄 Vault · Obsidian / Notion / Lark"},
@@ -1243,7 +1243,7 @@ const I18N = {
   legKnow:{zh:"知识 / 当前真相", en:"Knowledge / current truth"},
   legRaw:{zh:"外部输入", en:"External input"},
   ribbon:{zh:'冲突仲裁优先级：<b class="r2">知识专题文档</b> ＞ <b class="r3">LOG 历史记录</b>　（规则类以 AGENTS.md 为准）', en:'Conflict arbitration priority: <b class="r2">Topic doc</b> ＞ <b class="r3">LOG history</b>　(for rules, AGENTS.md wins)'},
-  footer:{zh:"—— 触发式创建 · 信息流动 · 单向毕业 · Provider 抽象 ——", en:"—— Trigger-based creation · information flow · one-way graduation · provider abstraction ——"},
+  footer:{zh:"—— 触发式创建 · 信息流动 · 单向入库 · Provider 抽象 ——", en:"—— Trigger-based creation · information flow · one-way graduation · provider abstraction ——"},
   ctaText:{zh:"获取 Project Cairn Skill", en:"Get the Project Cairn Skill"},
   ctaSub:{zh:"开源 · MIT · 一条命令装进你的 AI 协作项目", en:"Open source · MIT · one command to add it to your AI-collaboration project"},
   authorBy:{zh:"作者 · Blink", en:"Author · Blink"},
@@ -1260,7 +1260,7 @@ const I18N = {
 };
 
 const AUDIT = {
-  zh:["页面间的矛盾结论","被新经验取代的过时结论","无入站链接的孤立笔记","提及但缺专门页面的概念","缺失的交叉引用","LOG 单条超载（结论未沉淀）","坑未写进对应主题文档","可毕业经验遗漏","cairn/ 混入工程资产（应移回代码树）","主题文档缺少最小 frontmatter","知识库笔记缺 graduated_from 溯源","毕业源文档缺推荐回指针","专题更新晚于 graduated_at（提示再次毕业）","实例漂移（实例落后于当前规范）"],
+  zh:["页面间的矛盾结论","被新经验取代的过时结论","无入站链接的孤立笔记","提及但缺专门页面的概念","缺失的交叉引用","LOG 单条超载（结论未沉淀）","坑未写进对应主题文档","可入库经验遗漏","cairn/ 混入工程资产（应移回代码树）","主题文档缺少最小 frontmatter","知识库笔记缺 graduated_from 溯源","入库源文档缺推荐回指针","专题更新晚于 graduated_at（提示更新已入库经验）","实例漂移（实例落后于当前规范）"],
   en:["Contradictory conclusions across pages","Stale conclusions superseded by new experience","Isolated notes with no inbound links","Concepts mentioned but lacking a dedicated page","Missing cross-references","Overloaded single LOG entry (conclusion not sedimented)","Pitfall not written into its topic doc","Graduatable experience omitted","Engineering assets mixed into cairn/ (belong in the code tree)","Topic doc missing minimal frontmatter","Vault note missing graduated_from provenance","Graduation source doc missing recommended back-pointer","Topic updated after graduated_at (prompt re-graduation)","Instance drift (instance behind the current spec)"]
 };
 

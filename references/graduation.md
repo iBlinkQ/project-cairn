@@ -1,6 +1,6 @@
 # graduation
 
-Human-confirmed promotion of validated project knowledge into an external knowledge base. One-directional: project → knowledge base. Never silently graduate knowledge.
+Human-confirmed promotion of validated project knowledge into a knowledge base. One-directional: project → knowledge base. Never silently graduate knowledge. Chinese aliases: `zh-glossary.md`.
 
 ## Candidate criteria
 
@@ -27,7 +27,7 @@ If the user still declines, stop: the candidate stays recorded (optionally `grad
 
 ## Flow
 
-In an initialized Cairn project, graduation sources are always project topic notes (`cairn/<topic>.md`). When asked what qualifies for graduation or to graduate a project process document (proposal, spec, plan, review, meeting record, retrospective, or in-project experience/convention note), first distill its validated conclusions into `cairn/<topic>.md` (`type: project_topic`) per `maintenance.md` → Topic distillation sources (or point to the existing topic note), then graduate from that topic note (`graduated_from` points to the topic note and may also list the original process document).
+In an initialized Cairn project, graduation sources are always project topic notes (`cairn/<topic>.md`). When asked what qualifies or to graduate a project process document (proposal, spec, plan, review, meeting record, retrospective, or in-project experience/convention note), first distill its validated conclusions into `cairn/<topic>.md` (`type: project_topic`) per `maintenance.md` → Topic distillation sources (or point to the existing topic note), then graduate from that topic note (`graduated_from` points to the topic note and may also list the original process document).
 
 1. Propose topic-note candidates (audit is the backstop).
 2. Wait for user confirmation before writing anything.
@@ -47,11 +47,11 @@ For finished, archived, or lightweight folders without Cairn initialized, distil
 1. **Knowledge-base location**: read `~/.config/cairn/config.yaml`. If absent, ask once for provider, target, and index, and suggest saving them to `~/.config/cairn/config.yaml`.
 2. **Two ways to start**:
    - **Specify note(s)**: the user names one or more retrospective, summary, or experience notes directly.
-   - **Scan a folder**: the user asks to scan a folder (including archived projects), e.g. “看看这个文件夹里有什么经验可以毕业” or “看看这个文件夹里有什么可以毕业”. Exclude external reference materials via `maintenance.md`'s basic check; skip already-graduated notes (carrying `graduated_to` or already in `INDEX.md`); judge remaining notes by `Candidate criteria` and `maintenance.md`'s experience/convention rules; merge duplicate conclusions across notes into one candidate (listing all contributing files in `graduated_from`); list candidates and wait for confirmation before writing.
+   - **Scan a folder**: the user asks to scan a folder (including archived projects), e.g. “看看这个文件夹里，有哪些经验值得存进知识库” (legacy “毕业” also works). Exclude external reference materials via `maintenance.md`'s basic check; skip already-graduated notes (carrying `graduated_to` or already in `INDEX.md`); judge remaining notes by `Candidate criteria` and `maintenance.md`'s experience/convention rules; merge duplicate conclusions across notes into one candidate (listing all contributing files in `graduated_from`); list candidates and wait for confirmation before writing.
 3. **Write and source back-pointers**: after confirmation and preflight `ok`, write the knowledge-base note directly per `Note body structure` (**Background** then **Conclusion**) and `frontmatter.md` (`type: project_insight`, non-empty `graduated_by`, `authoring_mode`), preserving original wording and data.
    - `graduated_from` points directly to the source note(s) (`project`: folder/project name, `path`: folder-relative path).
    - Add only `graduated_to` and `graduated_at` to the source note's frontmatter, leaving its body and any existing `type` untouched (included in pre-graduation confirmation, not asked separately).
-   - When the folder has a project record note (e.g. CLIP `【PRO】<project>.md` or `type: project_log`), add `毕业：[[<knowledge-base note title>]]` (or `Graduated: [[<knowledge-base note title>]]`) under today's date (`[[YYYY-MM-DD]]`) in its progress section so the daily note lists it automatically.
+   - When the folder has a project record note (e.g. CLIP `【PRO】<project>.md` or `type: project_log`), add `经验入库：[[<knowledge-base note title>]]` (or `Graduated: [[<knowledge-base note title>]]`) under today's date (`[[YYYY-MM-DD]]`) in its progress section so the daily note lists it automatically.
 
 ## Note body structure
 

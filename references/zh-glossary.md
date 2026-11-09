@@ -5,16 +5,17 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 | English | Chinese |
 |---|---|
 | cairn (the name / imagery) | 路标石堆（不用"玛尼堆"） |
-| graduate / graduation | 毕业 |
-| graduation candidate | 毕业候选 |
-| graduation-symmetry test | 毕业对称测试 |
-| graduation-worthy | 够格毕业 |
+| graduate / graduation | 经验入库（动词可简称“入库”） |
+| graduation candidate | 待入库经验 |
+| graduation-symmetry test | 入库条件判断 |
+| graduation-worthy | 符合入库条件 |
 | reusable kernel | 可复用内核 |
 | adoption bar | 采用门槛 |
 | negative adoption | 排除法式采用 |
 | topic note | 知识专题文档 |
 | process document | 过程文档 |
-| one-shot graduation | 一次性毕业 |
+| one-shot graduation | 直接整理入库 |
+| re-graduation | 更新已入库经验 |
 | knowledge base / project experience library | 知识库 / 项目经验库 |
 | knowledge-base audit | 项目经验库体检 |
 | contributor | 贡献者 |
@@ -42,3 +43,14 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 | Open Questions (heading) | 开放问题 |
 
 This table only covers vocabulary this skill itself uses. It is not a general-purpose translation glossary.
+
+
+## Graduation wording and compatibility (2026-11-09)
+
+“经验入库” means distilling validated, cross-project reusable experience into a knowledge-base note after human confirmation, with provenance. It does not mean copying arbitrary files or merely registering an existing note in an index. Keep the candidate criteria and write gates in `graduation.md` unchanged.
+
+Use the new Chinese terms in current instructions, generated project rules, UI copy and new records. In prose, explain the graduation-symmetry test as “本次工作产生或依赖的结论符合入库条件时，先查知识库”; both produced and depended-on conclusions still count.
+
+Recognize legacy “知识毕业”“毕业”“一次性毕业”“再次毕业”“重新毕业” requests as aliases for the same flows. They confer no extra write authorization: propose candidates and wait for human confirmation as before. Prefer “看看这个文件夹里，有哪些经验值得存进知识库” as a new example prompt.
+
+Keep English names, paths, configuration keys, script arguments and frontmatter fields (`graduate`, `graduation`, `graduation_status`, `graduated_from`, `graduated_to`, `graduated_at`, `graduated_by`) unchanged. Existing note types and stored provider identifiers also stay valid. Preserve historical LOG entries, dated plans, original quotations and existing filenames; update live wording without rewriting history or breaking links.

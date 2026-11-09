@@ -2,7 +2,7 @@
 
 Bring an already-initialized project instance up to the current skill spec, or measure how far it has drifted. `cairn init` freezes the spec of its day into the project (AGENTS.md wording, config shape, LOG conventions); the skill keeps evolving, and nothing updates the frozen copy automatically. This reference is both the detection checklist and the execution manual for closing that gap.
 
-**Current spec date: 2026-11-05**
+**Current spec date: 2026-11-09**
 
 ## Two layers of "upgrade" — keep them apart
 
@@ -141,3 +141,11 @@ Historical release: new topics and graduation notes once shared a selected type.
 - **Detect**: optional standalone knowledge-base audit on an Obsidian knowledge-base folder checks for notes not yet registered in `INDEX.md`, or notes missing `type` / `summary` or not opening with **Background** before **Conclusion** (manually written notes without `graduated_from` or `graduated_by` are valid and not flagged).
 - **Fix**: register unindexed Obsidian notes via `scripts/obsidian-graduate.sh --index-only`; propose missing `type` / `summary` or **Background**-first restructuring and apply only after user confirmation, without fabricating `graduated_from` or `graduated_by`.
 - **Safety**: `confirm` (modifying knowledge-base notes requires user confirmation).
+
+
+### 2026-11-09 — Chinese graduation wording becomes 经验入库
+
+- **Affects**: live Chinese `AGENTS.md` rules and current project instructions; existing configuration, knowledge-base note fields and provider identifiers remain valid.
+- **Detect**: in a Chinese-language instance, inspect current operational rules (not historical LOG entries, dated evidence or original quotations) for “知识毕业”“够格毕业”“毕业机制”“一次性毕业”“再次毕业” or the old standalone action “毕业”.
+- **Fix**: use `zh-glossary.md`: 经验入库 / 符合入库条件 / 入库机制 / 直接整理入库 / 更新已入库经验. Preserve the consumption test's “produces or depends on” meaning and human-confirmed writes. Keep English names, paths, keys, arguments, note types, frontmatter and stable provider identifiers unchanged; recognize old Chinese requests as aliases. Do not rename existing files or rewrite historical records. Knowledge-base notes require no migration.
+- **Safety**: `auto` for mechanical current wording inside the project, showing the diff; this entry does not authorize edits to other projects or external knowledge bases.
