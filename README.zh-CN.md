@@ -73,9 +73,11 @@ git clone https://github.com/iBlinkQ/project-cairn.git ~/.agents/skills/project-
 
 - **正在进行的项目**：完成初始化后，可发送“整理已有经验”，Agent 会查找项目中已有的方案、会议纪要、复盘及经验/规范笔记，梳理当前进度与仍然有效的结论，完善 `cairn/ROADMAP.md` 并沉淀主题文档，原有资料保持不变。
 - **已结束的老项目或未初始化的文件夹（直接整理入库）**：无须初始化，也不生成 `.cairn/` 或 `cairn/` 文件夹。打开文件夹发送“看看这个文件夹里，有哪些经验值得存进知识库”（或直接指定某篇复盘、总结、经验文档发起入库），Agent 会读取用户级配置 `~/.config/cairn/config.yaml`，自动排除外部参考资料，筛选出有复用价值的经验并列出清单；人工确认后，直接写成 `type: project_insight` 笔记存入知识库并更新 `INDEX.md`，原笔记只加 `graduated_to`、`graduated_at` 两个回指字段（若文件夹有项目记录笔记，则在当天进展下加一行 `经验入库：[[知识库笔记]]`）。
-- **项目经验库体检**：不需要初始化项目，直接对 Obsidian 项目经验库文件夹执行体检——补登记尚未进入 `INDEX.md` 的手写笔记，并对缺少 `type` 或 `summary`、正文不是先写“背景”后写“结论”的笔记给出修改建议（确认后再改；手动写的笔记没有 `graduated_from` 不算错、不提示）。
+- **检查经验库**：不需要初始化项目。指定 Obsidian 项目经验库文件夹，Agent 会列出尚未登记到 `INDEX.md` 的笔记，以及缺少 `type`、`summary` 或正文未按“背景→结论”组织的内容，确认后再补登记或修改；手写笔记没有 `graduated_from` 不算错、不提示。
 
 旧版中的“知识毕业”“一次性毕业”等说法仍可使用，分别对应“经验入库”“直接整理入库”。英文名称、脚本与笔记字段保持兼容。
+
+需要检查时，对 Agent 说“检查项目经验”，它会检查相关主题文档、日志和路线图，列出遗漏、矛盾、过时内容和失效链接。“检查知识文档”“检查主题文档”以及旧的“体检”说法也可使用；指定某篇或某类文档时，按指定范围检查。先列问题和修改建议，经确认后再处理。普通项目检查会记一条检查日志；明确要求只读时不写日志。
 
 ## 两侧如何配合
 
@@ -100,7 +102,7 @@ Project Cairn 把信息分在两侧，而不是把所有内容塞进一个不断
 6. 你确认后，Agent 去除项目偶然细节，补齐背景、适用条件和来源，再写入知识库并更新索引。
 7. 新项目遇到相近问题时，先检索知识库。只有真正影响了产出的笔记，才在 `Cited.md` 留下指针。
 
-交互式页面把完整过程展开为 T0 到 T8 九个步骤，包括路线图维护、定期审查和更新已入库经验：[查看完整流程](https://iblinkq.github.io/project-cairn/)。
+交互式页面把完整过程展开为 T0 到 T8 九个步骤，包括路线图维护、按需检查项目经验和更新已入库经验：[查看完整流程](https://iblinkq.github.io/project-cairn/)。
 
 ## 它会留下什么
 
@@ -171,7 +173,7 @@ Project Cairn 不是用来替代所有相关工具的：
 | `references/graduation/` | 每个 provider 一份的入库执行路径（Lark wiki、Notion、Obsidian） |
 | `references/provider-interface.md` | provider adapter 的行为契约 |
 | `references/consume.md` | 检索、使用并引用外部知识 |
-| `references/audit.md` | 找出项目漂移、矛盾和缺失记录，以及对项目经验库做体检 |
+| `references/audit.md` | 找出项目漂移、矛盾和缺失记录，以及独立检查经验库 |
 | `references/upgrade.md` | 检查并升级已初始化项目的规范版本 |
 | `references/frontmatter.md` | 项目笔记与知识库笔记的字段规范 |
 | `references/branch-closure.md` | 关闭探索分支前收拢知识 |

@@ -16,7 +16,7 @@ Load only the reference your task needs:
 - `references/init.md` — initialize, retrofit, bootstrap, or set up Project Cairn in a project.
 - `references/consume.md` — pull, cite, reuse, or apply external knowledge from the configured knowledge base.
 - `references/maintenance.md` — record progress, update LOG/ROADMAP, distill conclusions from dialogue or project process documents into topic notes (e.g. "整理已有经验"), or apply Cairn rules after work.
-- `references/audit.md` — inspect, audit, or find missing project knowledge records; or run a knowledge-base audit (`项目经验库体检`, no project init) to register unindexed manual notes and check frontmatter/body structure.
+- `references/audit.md` — check project experience (`检查项目经验`; aliases `检查知识文档` / `检查主题文档` / legacy `体检`), or the experience library (`检查经验库`, no init); respect the requested scope and propose changes before writing.
 - `references/upgrade.md` — upgrade an initialized project instance to the current skill spec, or check instance drift.
 - `references/graduation.md` — graduate knowledge, judge readiness, or run one-shot graduation without init (`经验入库` / `直接整理入库`; legacy `毕业` / `一次性毕业`, e.g. “看看这个文件夹里，有哪些经验值得存进知识库”); provider writes also read the selected `references/graduation/<provider>.md`.
 - `references/frontmatter.md` — create or review Cairn topic notes or knowledge-base notes.

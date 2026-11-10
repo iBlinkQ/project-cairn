@@ -17,7 +17,8 @@ Fixed English → Chinese term mapping for Project Cairn's own vocabulary. Use t
 | one-shot graduation | 直接整理入库 |
 | re-graduation | 更新已入库经验 |
 | knowledge base / project experience library | 知识库 / 项目经验库 |
-| knowledge-base audit | 项目经验库体检 |
+| audit / project audit | 检查项目经验 |
+| knowledge-base audit | 检查经验库 |
 | contributor | 贡献者 |
 | origin quote | 原话引述 |
 | scene summary | 场景摘要 |
@@ -54,3 +55,14 @@ Use the new Chinese terms in current instructions, generated project rules, UI c
 Recognize legacy “知识毕业”“毕业”“一次性毕业”“再次毕业”“重新毕业” requests as aliases for the same flows. They confer no extra write authorization: propose candidates and wait for human confirmation as before. Prefer “看看这个文件夹里，有哪些经验值得存进知识库” as a new example prompt.
 
 Keep English names, paths, configuration keys, script arguments and frontmatter fields (`graduate`, `graduation`, `graduation_status`, `graduated_from`, `graduated_to`, `graduated_at`, `graduated_by`) unchanged. Existing note types and stored provider identifiers also stay valid. Preserve historical LOG entries, dated plans, original quotations and existing filenames; update live wording without rewriting history or breaking links.
+
+
+## Audit wording, aliases and scope (2026-11-10)
+
+Use “检查项目经验” as the main project-audit action and timeline label. Put “定期或按需” in the trigger description. For a standalone knowledge-base audit, use “检查经验库” (also “检查项目经验库”).
+
+Recognize “检查知识文档”“检查主题文档” and legacy “给项目知识做个体检”“定期体检”“项目经验库体检” / “体检” as audit requests when context indicates project knowledge or its experience library. Match the intended action, not a fixed trigger-word list; an unrelated use of “检查” is not enough.
+
+Resolve the target from the user's named file, document kind, folder and context. A request naming one topic note checks that note; a request naming a document kind stays within that kind. A general project request checks relevant topic notes, LOG and ROADMAP together. Read linked context only as needed to assess a finding; do not expand a scoped request into a whole-project or external-library audit. Findings list missing experience, contradictions, outdated conclusions and broken links, with concrete locations and suggested fixes. See `audit.md` for the report-before-repair and log rules.
+
+Keep English `audit`, paths, schemas, configuration keys and historical records unchanged. Aliases change neither scope nor write authorization; checking is not automatic maintenance, graduation or provider connection.
